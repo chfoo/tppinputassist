@@ -5,7 +5,7 @@ TPP Touchscreen Input Assist
 Usage
 =====
 
-You will either need Greasemonkey or Tampermonkey browser extensions. Once those are installed, use this URL: https://raw.githubusercontent.com/chfoo/tppinputassist/master/script.js.
+You will either need Greasemonkey or Tampermonkey browser extensions. Once those are installed, use this URL: https://raw.githubusercontent.com/chfoo/tppinputassist/master/tppinputassist.user.js.
 
 Once enabled, the Twitch chat will show "TPPInputAssist" under the text box. Click it to show the settings panel.
 

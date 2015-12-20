@@ -3,7 +3,7 @@
 // @namespace    chfoo/tppinputassist
 // @version      1.0
 // @homepage     https://github.com/chfoo/tppinputassist
-// @updateURL    https://raw.githubusercontent.com/chfoo/tppinputassist/master/script.js
+// @updateURL    https://raw.githubusercontent.com/chfoo/tppinputassist/master/tppinputassist.user.js
 // @description  Touchscreen coordinate tap overlay for inputting into Twitch chat
 // @author       Christopher Foo
 // @match        http://www.twitch.tv/*
