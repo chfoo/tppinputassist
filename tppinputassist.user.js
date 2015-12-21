@@ -254,13 +254,19 @@ tppinputassist_App.prototype = {
 		var _g = this;
 		this.settingsPanel = js_Boot.__cast(window.document.createElement("div") , HTMLDivElement);
 		this.settingsPanel.style.display = "none";
-		this.settingsPanel.innerHTML = "\n            <fieldset>\n            <legend>Touchscreen</legend>\n            <label for=tpp_assist_enable_checkbox\n                style='margin: inherit; color: inherit; display: inline-block'\n            >\n                <input type=checkbox id=tpp_assist_enable_checkbox>\n                Enable tap overlay\n            </label>\n            <br>\n            Width: <input id=tpp_assist_width_input type=number min=0 value=320 style='width: 5em;'>\n            <br>\n            Height: <input id=tpp_assist_height_input type=number min=0 value=240 style='width: 5em;'>\n            </fieldset>\n        ";
+		this.settingsPanel.innerHTML = "\n            <fieldset>\n            <legend>Touchscreen</legend>\n            <label for=tpp_assist_enable_checkbox\n                style='margin: inherit; color: inherit; display: inline-block;'\n            >\n                <input type=checkbox id=tpp_assist_enable_checkbox>\n                Enable tap overlay\n            </label>\n            <label for=tpp_assist_auto_send_checkbox\n                style='margin: inherit; color: inherit; display: inline-block;'\n            >\n                <input type=checkbox id=tpp_assist_auto_send_checkbox>\n                Automatically Send on click\n            </label>\n            <br>\n            Width: <input id=tpp_assist_width_input type=number min=0 value=320 style='width: 5em;'>\n            <br>\n            Height: <input id=tpp_assist_height_input type=number min=0 value=240 style='width: 5em;'>\n            </fieldset>\n        ";
 		window.document.body.appendChild(this.settingsPanel);
 		var enableCheckbox;
 		enableCheckbox = js_Boot.__cast(window.document.getElementById("tpp_assist_enable_checkbox") , HTMLInputElement);
 		enableCheckbox.onclick = function(event) {
 			_g.showTouchscreenOverlay(enableCheckbox.checked);
 		};
+		var element = window.document.getElementById("tpp_assist_auto_send_checkbox");
+		this.throwIfNull(element);
+		this.autoSendCheckbox = js_Boot.__cast(element , HTMLInputElement);
+		element = window.document.querySelector(".send-chat-button");
+		this.throwIfNull(element);
+		this.sendButton = js_Boot.__cast(element , HTMLButtonElement);
 		var widthInput;
 		widthInput = js_Boot.__cast(window.document.getElementById("tpp_assist_width_input") , HTMLInputElement);
 		var heightInput;
@@ -300,6 +306,11 @@ tppinputassist_App.prototype = {
 		js.JQuery(clickReceiver).click(function(event) {
 			var coord = _g.calcCoordinate(event);
 			js.JQuery(_g.textarea).focus().val("" + coord.x + "," + coord.y);
+			if(_g.autoSendCheckbox.checked) {
+				js.JQuery(_g.sendButton).focus();
+				js.JQuery(_g.textarea).focus();
+				js.JQuery(_g.sendButton).click();
+			}
 		});
 		js.JQuery(clickReceiver).mousemove(function(event1) {
 			var coord1 = _g.calcCoordinate(event1);
