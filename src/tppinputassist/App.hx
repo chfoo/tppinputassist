@@ -1,5 +1,6 @@
 package tppinputassist;
 
+import js.html.ButtonElement;
 import js.JQuery;
 import js.html.InputElement;
 import js.html.Event;
@@ -25,6 +26,8 @@ class App {
     var textarea:TextAreaElement;
     var touchScreenOverlay:DivElement;
     var settingsPanel:DivElement;
+    var autoSendCheckbox:InputElement;
+    var sendButton:ButtonElement;
     var touchscreenWidth = 320;
     var touchscreenHeight = 240;
 
@@ -99,10 +102,16 @@ class App {
             <fieldset>
             <legend>Touchscreen</legend>
             <label for=tpp_assist_enable_checkbox
-                style='margin: inherit; color: inherit; display: inline-block'
+                style='margin: inherit; color: inherit; display: inline-block;'
             >
                 <input type=checkbox id=tpp_assist_enable_checkbox>
                 Enable tap overlay
+            </label>
+            <label for=tpp_assist_auto_send_checkbox
+                style='margin: inherit; color: inherit; display: inline-block;'
+            >
+                <input type=checkbox id=tpp_assist_auto_send_checkbox>
+                Automatically Send on click
             </label>
             <br>
             Width: <input id=tpp_assist_width_input type=number min=0 value=320 style='width: 5em;'>
@@ -117,6 +126,14 @@ class App {
         enableCheckbox.onclick = function (event:Event) {
             showTouchscreenOverlay(enableCheckbox.checked);
         }
+
+        var element = Browser.document.getElementById("tpp_assist_auto_send_checkbox");
+        throwIfNull(element);
+        autoSendCheckbox = cast(element, InputElement);
+
+        element = Browser.document.querySelector(".send-chat-button");
+        throwIfNull(element);
+        sendButton = cast(element, ButtonElement);
 
         var widthInput = cast(Browser.document.getElementById("tpp_assist_width_input"), InputElement);
         var heightInput = cast(Browser.document.getElementById("tpp_assist_width_input"), InputElement);
@@ -158,6 +175,12 @@ class App {
         new JQuery(clickReceiver).click(function (event:JqEvent) {
             var coord = calcCoordinate(event);
             new JQuery(textarea).focus().val('${coord.x},${coord.y}');
+
+            if (autoSendCheckbox.checked) {
+                new JQuery(sendButton).focus();
+                new JQuery(textarea).focus();
+                new JQuery(sendButton).click();
+            }
         });
 
         new JQuery(clickReceiver).mousemove(function (event:JqEvent) {
