@@ -1,17 +1,18 @@
 package tppinputassist;
 
 import js.JQuery;
-import js.JQuery;
-import js.html.MouseEvent;
 import js.html.InputElement;
 import js.html.Event;
-import js.JQuery;
-import js.JQuery;
 import js.html.AnchorElement;
 import js.html.DivElement;
 import js.html.Element;
 import js.html.TextAreaElement;
 import js.Browser;
+
+
+typedef XY = {
+    x:Int, y:Int
+};
 
 
 class ElementNotFoundError {
@@ -65,7 +66,7 @@ class App {
             }
 
             var jq = new JQuery(settingsPanel);
-            untyped jq.dialog();
+            untyped jq.dialog({"title": "TPP Input Assist Settings"});
             return false;
         }
 
@@ -93,13 +94,21 @@ class App {
         settingsPanel = cast(Browser.document.createElement("div"), DivElement);
         settingsPanel.style.display = "none";
 
+        // The label has inline styles to override the Twitch CSS
         settingsPanel.innerHTML = "
-            <input type=checkbox id=tpp_assist_enable_checkbox>
-            <label for=tpp_assist_enable_checkbox>Enable touchscreen</label>
+            <fieldset>
+            <legend>Touchscreen</legend>
+            <label for=tpp_assist_enable_checkbox
+                style='margin: inherit; color: inherit; display: inline-block'
+            >
+                <input type=checkbox id=tpp_assist_enable_checkbox>
+                Enable tap overlay
+            </label>
             <br>
             Width: <input id=tpp_assist_width_input type=number min=0 value=320 style='width: 5em;'>
             <br>
             Height: <input id=tpp_assist_height_input type=number min=0 value=240 style='width: 5em;'>
+            </fieldset>
         ";
 
         Browser.document.body.appendChild(settingsPanel);
@@ -133,9 +142,11 @@ class App {
         dragHandle.style.position = "relative";
         dragHandle.style.top = "-0.5em";
         dragHandle.style.left = "-0.5em";
-        dragHandle.style.background = "rgba(255, 255, 255, 0.5)";
+        dragHandle.style.background = "grey";
         dragHandle.style.height = "1em";
         dragHandle.style.cursor = "move";
+        dragHandle.style.opacity = "0.5";
+        dragHandle.style.color = "white";
 
         var clickReceiver = cast(Browser.document.createElement("div"), DivElement);
         touchScreenOverlay.appendChild(clickReceiver);
@@ -145,16 +156,31 @@ class App {
         Browser.document.body.appendChild(touchScreenOverlay);
 
         new JQuery(clickReceiver).click(function (event:JqEvent) {
-            var offset = new JQuery(touchScreenOverlay).offset();
-            var divWidth = new JQuery(touchScreenOverlay).width();
-            var divHeight = new JQuery(touchScreenOverlay).height();
-            var x = Std.int((event.pageX - offset.left) / divWidth * touchscreenWidth);
-            var y = Std.int((event.pageY - offset.top) / divHeight * touchscreenHeight);
-            new JQuery(textarea).focus().val('$x,$y');
+            var coord = calcCoordinate(event);
+            new JQuery(textarea).focus().val('${coord.x},${coord.y}');
+        });
+
+        new JQuery(clickReceiver).mousemove(function (event:JqEvent) {
+            var coord = calcCoordinate(event);
+            dragHandle.innerText = '${coord.x},${coord.y}';
+        });
+
+        new JQuery(clickReceiver).mouseleave(function (event:JqEvent) {
+            dragHandle.innerText = "";
         });
 
         var jq = new JQuery(touchScreenOverlay);
         untyped jq.draggable({"handle": dragHandle}).resizable();
+    }
+
+    function calcCoordinate(event:JqEvent):XY {
+        var offset = new JQuery(touchScreenOverlay).offset();
+        var divWidth = new JQuery(touchScreenOverlay).width();
+        var divHeight = new JQuery(touchScreenOverlay).height();
+        var x = Std.int((event.pageX - offset.left) / divWidth * touchscreenWidth);
+        var y = Std.int((event.pageY - offset.top) / divHeight * touchscreenHeight);
+
+        return {x: x, y: y};
     }
 
     function showTouchscreenOverlay(visible:Bool) {
