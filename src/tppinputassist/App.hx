@@ -32,7 +32,7 @@ class App {
     }
 
     public function run() {
-        Browser.window.addEventListener("load", function() {
+        new JQuery(Browser.document.body).ready(function(event:JqEvent) {
             trace("Page loaded, trying install script");
             jamJQueryIn();
         });
