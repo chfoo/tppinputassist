@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TPP Touchscreen Input Assist
 // @namespace    chfoo/tppinputassist
-// @version      1.0
+// @version      1.1
 // @homepage     https://github.com/chfoo/tppinputassist
 // @updateURL    https://raw.githubusercontent.com/chfoo/tppinputassist/master/tppinputassist.user.js
 // @description  Touchscreen coordinate tap overlay for inputting into Twitch chat
@@ -234,7 +234,7 @@ tppinputassist_App.prototype = {
 		enableElement.onclick = function(event) {
 			if(_g.settingsPanel == null) _g.install();
 			var jq = js.JQuery(_g.settingsPanel);
-			jq.dialog();
+			jq.dialog({ 'title' : "TPP Input Assist Settings"});
 			return false;
 		};
 		buttonContainer.appendChild(enableElement);
@@ -254,7 +254,7 @@ tppinputassist_App.prototype = {
 		var _g = this;
 		this.settingsPanel = js_Boot.__cast(window.document.createElement("div") , HTMLDivElement);
 		this.settingsPanel.style.display = "none";
-		this.settingsPanel.innerHTML = "\n            <input type=checkbox id=tpp_assist_enable_checkbox>\n            <label for=tpp_assist_enable_checkbox>Enable touchscreen</label>\n            <br>\n            Width: <input id=tpp_assist_width_input type=number min=0 value=320 style='width: 5em;'>\n            <br>\n            Height: <input id=tpp_assist_height_input type=number min=0 value=240 style='width: 5em;'>\n        ";
+		this.settingsPanel.innerHTML = "\n            <fieldset>\n            <legend>Touchscreen</legend>\n            <label for=tpp_assist_enable_checkbox\n                style='margin: inherit; color: inherit; display: inline-block'\n            >\n                <input type=checkbox id=tpp_assist_enable_checkbox>\n                Enable tap overlay\n            </label>\n            <br>\n            Width: <input id=tpp_assist_width_input type=number min=0 value=320 style='width: 5em;'>\n            <br>\n            Height: <input id=tpp_assist_height_input type=number min=0 value=240 style='width: 5em;'>\n            </fieldset>\n        ";
 		window.document.body.appendChild(this.settingsPanel);
 		var enableCheckbox;
 		enableCheckbox = js_Boot.__cast(window.document.getElementById("tpp_assist_enable_checkbox") , HTMLInputElement);
@@ -286,9 +286,11 @@ tppinputassist_App.prototype = {
 		dragHandle.style.position = "relative";
 		dragHandle.style.top = "-0.5em";
 		dragHandle.style.left = "-0.5em";
-		dragHandle.style.background = "rgba(255, 255, 255, 0.5)";
+		dragHandle.style.background = "grey";
 		dragHandle.style.height = "1em";
 		dragHandle.style.cursor = "move";
+		dragHandle.style.opacity = "0.5";
+		dragHandle.style.color = "white";
 		var clickReceiver;
 		clickReceiver = js_Boot.__cast(window.document.createElement("div") , HTMLDivElement);
 		this.touchScreenOverlay.appendChild(clickReceiver);
@@ -296,15 +298,26 @@ tppinputassist_App.prototype = {
 		clickReceiver.style.height = "100%";
 		window.document.body.appendChild(this.touchScreenOverlay);
 		js.JQuery(clickReceiver).click(function(event) {
-			var offset = js.JQuery(_g.touchScreenOverlay).offset();
-			var divWidth = js.JQuery(_g.touchScreenOverlay).width();
-			var divHeight = js.JQuery(_g.touchScreenOverlay).height();
-			var x = (event.pageX - offset.left) / divWidth * _g.touchscreenWidth | 0;
-			var y = (event.pageY - offset.top) / divHeight * _g.touchscreenHeight | 0;
-			js.JQuery(_g.textarea).focus().val("" + x + "," + y);
+			var coord = _g.calcCoordinate(event);
+			js.JQuery(_g.textarea).focus().val("" + coord.x + "," + coord.y);
+		});
+		js.JQuery(clickReceiver).mousemove(function(event1) {
+			var coord1 = _g.calcCoordinate(event1);
+			dragHandle.innerText = "" + coord1.x + "," + coord1.y;
+		});
+		js.JQuery(clickReceiver).mouseleave(function(event2) {
+			dragHandle.innerText = "";
 		});
 		var jq = js.JQuery(this.touchScreenOverlay);
 		jq.draggable({ 'handle' : dragHandle}).resizable();
+	}
+	,calcCoordinate: function(event) {
+		var offset = js.JQuery(this.touchScreenOverlay).offset();
+		var divWidth = js.JQuery(this.touchScreenOverlay).width();
+		var divHeight = js.JQuery(this.touchScreenOverlay).height();
+		var x = (event.pageX - offset.left) / divWidth * this.touchscreenWidth | 0;
+		var y = (event.pageY - offset.top) / divHeight * this.touchscreenHeight | 0;
+		return { x : x, y : y};
 	}
 	,showTouchscreenOverlay: function(visible) {
 		var offset = js.JQuery("#player").offset();
