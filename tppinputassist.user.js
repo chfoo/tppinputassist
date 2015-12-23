@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TPP Touchscreen Input Assist
 // @namespace    chfoo/tppinputassist
-// @version      1.2
+// @version      1.2.1
 // @homepage     https://github.com/chfoo/tppinputassist
 // @updateURL    https://raw.githubusercontent.com/chfoo/tppinputassist/master/tppinputassist.user.js
 // @description  Touchscreen coordinate tap overlay for inputting into Twitch chat
@@ -285,6 +285,24 @@ tppinputassist_App.prototype = {
 		this.touchScreenOverlay.style.height = "100px";
 		this.touchScreenOverlay.style.display = "none";
 		this.touchScreenOverlay.style.position = "absolute";
+		var coordDisplay;
+		coordDisplay = js_Boot.__cast(window.document.createElement("div") , HTMLDivElement);
+		this.touchScreenOverlay.appendChild(coordDisplay);
+		coordDisplay.style.position = "absolute";
+		coordDisplay.style.bottom = "0px";
+		coordDisplay.style.left = "0px";
+		coordDisplay.style.opacity = "0.5";
+		coordDisplay.style.color = "white";
+		coordDisplay.style.fontSize = "0.75em";
+		coordDisplay.style.width = "100%";
+		coordDisplay.textContent = "Drag & Size Me";
+		var clickReceiver;
+		clickReceiver = js_Boot.__cast(window.document.createElement("div") , HTMLDivElement);
+		this.touchScreenOverlay.appendChild(clickReceiver);
+		clickReceiver.style.position = "absolute";
+		clickReceiver.style.top = "0px";
+		clickReceiver.style.width = "100%";
+		clickReceiver.style.height = "100%";
 		var dragHandle;
 		dragHandle = js_Boot.__cast(window.document.createElement("div") , HTMLDivElement);
 		this.touchScreenOverlay.appendChild(dragHandle);
@@ -297,11 +315,6 @@ tppinputassist_App.prototype = {
 		dragHandle.style.cursor = "move";
 		dragHandle.style.opacity = "0.5";
 		dragHandle.style.color = "white";
-		var clickReceiver;
-		clickReceiver = js_Boot.__cast(window.document.createElement("div") , HTMLDivElement);
-		this.touchScreenOverlay.appendChild(clickReceiver);
-		clickReceiver.style.width = "100%";
-		clickReceiver.style.height = "100%";
 		window.document.body.appendChild(this.touchScreenOverlay);
 		js.JQuery(clickReceiver).click(function(event) {
 			var coord = _g.calcCoordinate(event);
@@ -314,10 +327,10 @@ tppinputassist_App.prototype = {
 		});
 		js.JQuery(clickReceiver).mousemove(function(event1) {
 			var coord1 = _g.calcCoordinate(event1);
-			dragHandle.innerText = "" + coord1.x + "," + coord1.y;
+			coordDisplay.textContent = "" + coord1.x + "," + coord1.y;
 		});
 		js.JQuery(clickReceiver).mouseleave(function(event2) {
-			dragHandle.innerText = "";
+			coordDisplay.textContent = "";
 		});
 		var jq = js.JQuery(this.touchScreenOverlay);
 		jq.draggable({ 'handle' : dragHandle}).resizable();
