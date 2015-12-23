@@ -153,6 +153,24 @@ class App {
         touchScreenOverlay.style.display = "none";
         touchScreenOverlay.style.position = "absolute";
 
+        var coordDisplay = cast(Browser.document.createElement("div"), DivElement);
+        touchScreenOverlay.appendChild(coordDisplay);
+        coordDisplay.style.position = "absolute";
+        coordDisplay.style.bottom = "0px";
+        coordDisplay.style.left = "0px";
+        coordDisplay.style.opacity = "0.5";
+        coordDisplay.style.color = "white";
+        coordDisplay.style.fontSize = "0.75em";
+        coordDisplay.style.width = "100%";
+        coordDisplay.textContent = "Drag & Size Me";
+
+        var clickReceiver = cast(Browser.document.createElement("div"), DivElement);
+        touchScreenOverlay.appendChild(clickReceiver);
+        clickReceiver.style.position = "absolute";
+        clickReceiver.style.top = "0px";
+        clickReceiver.style.width = "100%";
+        clickReceiver.style.height = "100%";
+
         var dragHandle = cast(Browser.document.createElement("div"), DivElement);
         touchScreenOverlay.appendChild(dragHandle);
         dragHandle.style.border = "0.1em outset grey";
@@ -164,11 +182,6 @@ class App {
         dragHandle.style.cursor = "move";
         dragHandle.style.opacity = "0.5";
         dragHandle.style.color = "white";
-
-        var clickReceiver = cast(Browser.document.createElement("div"), DivElement);
-        touchScreenOverlay.appendChild(clickReceiver);
-        clickReceiver.style.width = "100%";
-        clickReceiver.style.height = "100%";
 
         Browser.document.body.appendChild(touchScreenOverlay);
 
@@ -185,11 +198,11 @@ class App {
 
         new JQuery(clickReceiver).mousemove(function (event:JqEvent) {
             var coord = calcCoordinate(event);
-            dragHandle.innerText = '${coord.x},${coord.y}';
+            coordDisplay.textContent = '${coord.x},${coord.y}';
         });
 
         new JQuery(clickReceiver).mouseleave(function (event:JqEvent) {
-            dragHandle.innerText = "";
+            coordDisplay.textContent = "";
         });
 
         var jq = new JQuery(touchScreenOverlay);
