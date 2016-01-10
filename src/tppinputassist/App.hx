@@ -136,7 +136,7 @@ class App {
         sendButton = cast(element, ButtonElement);
 
         var widthInput = cast(Browser.document.getElementById("tpp_assist_width_input"), InputElement);
-        var heightInput = cast(Browser.document.getElementById("tpp_assist_width_input"), InputElement);
+        var heightInput = cast(Browser.document.getElementById("tpp_assist_height_input"), InputElement);
 
         widthInput.onchange = heightInput.onchange = function(event:Event) {
             touchscreenWidth = Std.parseInt(widthInput.value);
