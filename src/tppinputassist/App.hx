@@ -170,6 +170,7 @@ class App {
         clickReceiver.style.top = "0px";
         clickReceiver.style.width = "100%";
         clickReceiver.style.height = "100%";
+        clickReceiver.style.cursor = "crosshair";
 
         var dragHandle = cast(Browser.document.createElement("div"), DivElement);
         touchScreenOverlay.appendChild(dragHandle);
