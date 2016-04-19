@@ -23,6 +23,7 @@ class ElementNotFoundError {
 
 
 class App {
+    var running = false;
     var textarea:TextAreaElement;
     var touchScreenOverlay:DivElement;
     var settingsPanel:DivElement;
@@ -36,17 +37,18 @@ class App {
 
     public function run() {
         new JQuery(Browser.document.body).ready(function(event:JqEvent) {
+            if (running) {
+                return;
+            }
+
+            running = true;
             trace("Page loaded, trying install script");
-            jamJQueryIn();
+            Browser.window.setTimeout(jamJQueryIn, 10000);
         });
     }
 
     function jamJQueryIn() {
-        untyped JQuery.getScript("https://code.jquery.com/ui/1.11.4/jquery-ui.min.js",
-            function() {
-                installSettingsButton();
-            }
-        );
+        installSettingsButton();
 
         var div = cast(Browser.document.createElement("div"), DivElement);
         div.innerHTML = "
