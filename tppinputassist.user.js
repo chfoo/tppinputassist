@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TPP Touchscreen Input Assist
 // @namespace    chfoo/tppinputassist
-// @version      1.3.1
+// @version      1.3.2
 // @homepage     https://github.com/chfoo/tppinputassist
 // @updateURL    https://raw.githubusercontent.com/chfoo/tppinputassist/master/tppinputassist.user.js
 // @description  Touchscreen coordinate tap overlay for inputting into Twitch chat
@@ -9,9 +9,10 @@
 // @match        http://*.twitch.tv/*
 // @match        https://*.twitch.tv/*
 // @grant        none
+// @require      https://code.jquery.com/jquery-2.2.3.min.js
+// @require      https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
 // ==/UserScript==
 /* jshint -W097 */
-
 
 (function (console, $global) { "use strict";
 function $extend(from, fields) {
@@ -204,21 +205,21 @@ tppinputassist_ElementNotFoundError.prototype = {
 var tppinputassist_App = function() {
 	this.touchscreenHeight = 240;
 	this.touchscreenWidth = 320;
+	this.running = false;
 };
 tppinputassist_App.__name__ = true;
 tppinputassist_App.prototype = {
 	run: function() {
 		var _g = this;
 		js.JQuery(window.document.body).ready(function(event) {
+			if(_g.running) return;
+			_g.running = true;
 			console.log("Page loaded, trying install script");
-			_g.jamJQueryIn();
+			window.setTimeout($bind(_g,_g.jamJQueryIn),10000);
 		});
 	}
 	,jamJQueryIn: function() {
-		var _g = this;
-		js.JQuery.getScript("https://code.jquery.com/ui/1.11.4/jquery-ui.min.js",function() {
-			_g.installSettingsButton();
-		});
+		this.installSettingsButton();
 		var div;
 		div = js_Boot.__cast(window.document.createElement("div") , HTMLDivElement);
 		div.innerHTML = "\n            <link rel='stylesheet' href='https://code.jquery.com/ui/1.11.4/themes/dark-hive/jquery-ui.css' type='text/css'>\n        ";
@@ -369,6 +370,8 @@ tppinputassist_Main.main = function() {
 	var app = new tppinputassist_App();
 	app.run();
 };
+var $_, $fid = 0;
+function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id__ = $fid++; var f; if( o.hx__closures__ == null ) o.hx__closures__ = {}; else f = o.hx__closures__[m.__id__]; if( f == null ) { f = function(){ return f.method.apply(f.scope, arguments); }; f.scope = o; f.method = m; o.hx__closures__[m.__id__] = f; } return f; }
 String.prototype.__class__ = String;
 String.__name__ = true;
 Array.__name__ = true;
