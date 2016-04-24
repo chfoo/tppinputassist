@@ -48,6 +48,11 @@ Std.parseInt = function(x) {
 	if(isNaN(v)) return null;
 	return v;
 };
+var StringTools = function() { };
+StringTools.__name__ = true;
+StringTools.replace = function(s,sub,by) {
+	return s.split(sub).join(by);
+};
 var js__$Boot_HaxeError = function(val) {
 	Error.call(this);
 	this.val = val;
@@ -203,6 +208,7 @@ tppinputassist_ElementNotFoundError.prototype = {
 	__class__: tppinputassist_ElementNotFoundError
 };
 var tppinputassist_App = function() {
+	this.touchscreenFormat = "{x},{y}";
 	this.touchscreenHeight = 240;
 	this.touchscreenWidth = 320;
 	this.running = false;
@@ -256,7 +262,7 @@ tppinputassist_App.prototype = {
 		var _g = this;
 		this.settingsPanel = js_Boot.__cast(window.document.createElement("div") , HTMLDivElement);
 		this.settingsPanel.style.display = "none";
-		this.settingsPanel.innerHTML = "\n            <fieldset>\n            <legend>Touchscreen</legend>\n            <label for=tpp_assist_enable_checkbox\n                style='margin: inherit; color: inherit; display: inline-block;'\n            >\n                <input type=checkbox id=tpp_assist_enable_checkbox>\n                Enable tap overlay\n            </label>\n            <label for=tpp_assist_auto_send_checkbox\n                style='margin: inherit; color: inherit; display: inline-block;'\n            >\n                <input type=checkbox id=tpp_assist_auto_send_checkbox>\n                Automatically Send on click\n            </label>\n            <br>\n            Width: <input id=tpp_assist_width_input type=number min=0 value=320 style='width: 5em;'>\n            <br>\n            Height: <input id=tpp_assist_height_input type=number min=0 value=240 style='width: 5em;'>\n            </fieldset>\n        ";
+		this.settingsPanel.innerHTML = "\n            <fieldset>\n            <legend>Touchscreen</legend>\n            <label for=tpp_assist_enable_checkbox\n                style='margin: inherit; color: inherit; display: inline-block;'\n            >\n                <input type=checkbox id=tpp_assist_enable_checkbox>\n                Enable tap overlay\n            </label>\n            <label for=tpp_assist_auto_send_checkbox\n                style='margin: inherit; color: inherit; display: inline-block;'\n            >\n                <input type=checkbox id=tpp_assist_auto_send_checkbox>\n                Automatically Send on click\n            </label>\n            <br>\n            Width: <input id=tpp_assist_width_input type=number min=0 value=320 style='width: 5em;'>\n            <br>\n            Height: <input id=tpp_assist_height_input type=number min=0 value=240 style='width: 5em;'>\n            <br>\n            Format: <input id=tpp_assist_format_input type=text value='{x},{y}' style='width: 5em;'>\n            </fieldset>\n        ";
 		window.document.body.appendChild(this.settingsPanel);
 		var enableCheckbox;
 		enableCheckbox = js_Boot.__cast(window.document.getElementById("tpp_assist_enable_checkbox") , HTMLInputElement);
@@ -276,6 +282,11 @@ tppinputassist_App.prototype = {
 		widthInput.onchange = heightInput.onchange = function(event1) {
 			_g.touchscreenWidth = Std.parseInt(widthInput.value);
 			_g.touchscreenHeight = Std.parseInt(heightInput.value);
+		};
+		var formatElement;
+		formatElement = js_Boot.__cast(window.document.getElementById("tpp_assist_format_input") , HTMLInputElement);
+		formatElement.onchange = function(event2) {
+			_g.touchscreenFormat = formatElement.value;
 		};
 	}
 	,installTouchscreenOverlay: function() {
@@ -321,7 +332,8 @@ tppinputassist_App.prototype = {
 		window.document.body.appendChild(this.touchScreenOverlay);
 		js.JQuery(clickReceiver).click(function(event) {
 			var coord = _g.calcCoordinate(event);
-			js.JQuery(_g.textarea).focus().val("" + coord.x + "," + coord.y);
+			var text = StringTools.replace(StringTools.replace(_g.touchscreenFormat,"{x}",coord.x == null?"null":"" + coord.x),"{y}",coord.y == null?"null":"" + coord.y);
+			js.JQuery(_g.textarea).focus().val(text);
 			if(_g.autoSendCheckbox.checked) {
 				js.JQuery(_g.sendButton).focus();
 				js.JQuery(_g.textarea).focus();
