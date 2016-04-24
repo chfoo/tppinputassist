@@ -10,6 +10,8 @@ import js.html.Element;
 import js.html.TextAreaElement;
 import js.Browser;
 
+using StringTools;
+
 
 typedef XY = {
     x:Int, y:Int
@@ -31,6 +33,7 @@ class App {
     var sendButton:ButtonElement;
     var touchscreenWidth = 320;
     var touchscreenHeight = 240;
+    var touchscreenFormat = "{x},{y}";
 
     public function new() {
     }
@@ -119,6 +122,8 @@ class App {
             Width: <input id=tpp_assist_width_input type=number min=0 value=320 style='width: 5em;'>
             <br>
             Height: <input id=tpp_assist_height_input type=number min=0 value=240 style='width: 5em;'>
+            <br>
+            Format: <input id=tpp_assist_format_input type=text value='{x},{y}' style='width: 5em;'>
             </fieldset>
         ";
 
@@ -143,6 +148,11 @@ class App {
         widthInput.onchange = heightInput.onchange = function(event:Event) {
             touchscreenWidth = Std.parseInt(widthInput.value);
             touchscreenHeight = Std.parseInt(heightInput.value);
+        }
+
+        var formatElement = cast(Browser.document.getElementById("tpp_assist_format_input"), InputElement);
+        formatElement.onchange = function(event:Event) {
+            touchscreenFormat = formatElement.value;
         }
     }
 
@@ -190,7 +200,10 @@ class App {
 
         new JQuery(clickReceiver).click(function (event:JqEvent) {
             var coord = calcCoordinate(event);
-            new JQuery(textarea).focus().val('${coord.x},${coord.y}');
+            var text = touchscreenFormat
+                .replace("{x}", Std.string(coord.x))
+                .replace("{y}", Std.string(coord.y));
+            new JQuery(textarea).focus().val(text);
 
             if (autoSendCheckbox.checked) {
                 new JQuery(sendButton).focus();
