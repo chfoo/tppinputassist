@@ -39,6 +39,17 @@ class App {
     }
 
     public function run() {
+        try {
+            new JQuery(Browser.document.body);
+        } catch (e:Dynamic) {
+            jamBootstrapJQueryIn();
+            return;
+        }
+
+        attachLoadHook();
+    }
+
+    function attachLoadHook() {
         new JQuery(Browser.document.body).ready(function(event:JqEvent) {
             if (running) {
                 return;
@@ -48,6 +59,22 @@ class App {
             trace("Page loaded, trying install script");
             Browser.window.setTimeout(jamJQueryIn, 10000);
         });
+    }
+
+    function jamBootstrapJQueryIn() {
+        var scriptElement = Browser.document.createScriptElement();
+        scriptElement.src = "https://code.jquery.com/jquery-2.1.4.min.js";
+        Browser.document.body.appendChild(scriptElement);
+
+        scriptElement.onload = function() {
+            var scriptElement2 = Browser.document.createScriptElement();
+            scriptElement2.src = "https://code.jquery.com/ui/1.11.4/jquery-ui.min.js";
+            Browser.document.body.appendChild(scriptElement2);
+
+            untyped js.JQuery = Reflect.field(Browser.window, "jQuery");
+
+            scriptElement2.onload = attachLoadHook;
+        };
     }
 
     function jamJQueryIn() {
