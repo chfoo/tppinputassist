@@ -31,11 +31,14 @@ class App {
     var settingsPanel:DivElement;
     var autoSendCheckbox:InputElement;
     var sendButton:ButtonElement;
+    var coordDisplay:DivElement;
     var touchscreenWidth = 320;
     var touchscreenHeight = 240;
     var touchscreenFormat = "{x},{y}";
+    var lastSendTime:Date;
 
     public function new() {
+        lastSendTime = Date.now();
     }
 
     public function run() {
@@ -151,6 +154,8 @@ class App {
             Height: <input id=tpp_assist_height_input type=number min=0 value=240 style='width: 5em;'>
             <br>
             Format: <input id=tpp_assist_format_input type=text value='{x},{y}' style='width: 5em;'>
+            <br>
+            <small>A warning will show in the overlay if you click too fast to warn of global ban.</small>
             </fieldset>
         ";
 
@@ -192,7 +197,7 @@ class App {
         touchScreenOverlay.style.display = "none";
         touchScreenOverlay.style.position = "absolute";
 
-        var coordDisplay = cast(Browser.document.createElement("div"), DivElement);
+        coordDisplay = cast(Browser.document.createElement("div"), DivElement);
         touchScreenOverlay.appendChild(coordDisplay);
         coordDisplay.style.position = "absolute";
         coordDisplay.style.bottom = "0px";
@@ -233,6 +238,14 @@ class App {
             new JQuery(textarea).focus().val(text);
 
             if (autoSendCheckbox.checked) {
+                var dateNow = Date.now();
+
+                if (dateNow.getTime() - lastSendTime.getTime() < 1.5 * 1000) {
+                    coordDisplay.textContent += " Slow down!";
+                }
+
+                lastSendTime = dateNow;
+
                 new JQuery(sendButton).focus();
                 new JQuery(textarea).focus();
                 new JQuery(sendButton).click();
