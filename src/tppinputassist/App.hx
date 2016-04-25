@@ -155,7 +155,12 @@ class App {
             <br>
             Format: <input id=tpp_assist_format_input type=text value='{x},{y}' style='width: 5em;'>
             <br>
-            <small>A warning will show in the overlay if you click too fast to warn of global ban.</small>
+            <label for=tpp_assist_avoid_ban_checkbox
+                style='margin: inherit; color: inherit; display: inline-block;'
+            >
+                <input type=checkbox id=tpp_assist_avoid_ban_checkbox checked=checked>
+                Don't autosend if clicked too fast (helps avoid global ban)
+            </label>
             </fieldset>
         ";
 
@@ -207,6 +212,7 @@ class App {
         coordDisplay.style.fontSize = "0.75em";
         coordDisplay.style.width = "100%";
         coordDisplay.textContent = "Drag & Size Me";
+        coordDisplay.style.textShadow = "0px 0px 3px black";
 
         var clickReceiver = cast(Browser.document.createElement("div"), DivElement);
         touchScreenOverlay.appendChild(clickReceiver);
@@ -237,11 +243,18 @@ class App {
                 .replace("{y}", Std.string(coord.y));
             new JQuery(textarea).focus().val(text);
 
+            coordDisplay.textContent = '${coord.x},${coord.y} *';
+
             if (autoSendCheckbox.checked) {
                 var dateNow = Date.now();
 
-                if (dateNow.getTime() - lastSendTime.getTime() < 1.5 * 1000) {
-                    coordDisplay.textContent += " Slow down!";
+                var element = Browser.document.getElementById("tpp_assist_avoid_ban_checkbox");
+                throwIfNull(element);
+                var avoidBanCheckbox = cast(element, InputElement);
+
+                if (dateNow.getTime() - lastSendTime.getTime() < 1.5 * 1000 && avoidBanCheckbox.checked) {
+                    coordDisplay.textContent += " Slow down! Msg not sent";
+                    return;
                 }
 
                 lastSendTime = dateNow;

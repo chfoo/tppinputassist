@@ -7,7 +7,7 @@ Usage
 
 You will either need [Greasemonkey](https://addons.mozilla.org/firefox/addon/greasemonkey/) or [Tampermonkey](https://tampermonkey.net/) desktop browser extensions. Once those are installed, click or use this URL: https://raw.githubusercontent.com/chfoo/tppinputassist/master/tppinputassist.user.js.
 
-(Alternatively, you can use bookmarklet: `javascript:(function(){document.body.appendChild(document.createElement('script')).src='https://nullhound.fart.website/~chris/tppinputassist/tppinputassist.user.js';})();` .)
+(Alternatively, you can use bookmarklet: `javascript:(function(){document.body.appendChild(document.createElement('script')).src='https://nullhound.fart.website/~chris/tppinputassist/tppinputassist.user.js';})();` . May not work; recommended to use the browser extensions.)
 
 Once enabled, reload the video page. The Twitch chat will show "TPPInputAssist" under the text box. Click it to show the settings panel.
 
