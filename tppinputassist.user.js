@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TPP Touchscreen Input Assist
 // @namespace    chfoo/tppinputassist
-// @version      1.5
+// @version      1.6
 // @homepage     https://github.com/chfoo/tppinputassist
 // @updateURL    https://raw.githubusercontent.com/chfoo/tppinputassist/master/tppinputassist.user.js
 // @description  Touchscreen coordinate tap overlay for inputting into Twitch chat
@@ -298,7 +298,7 @@ tppinputassist_App.prototype = {
 		var _g = this;
 		this.settingsPanel = js_Boot.__cast(window.document.createElement("div") , HTMLDivElement);
 		this.settingsPanel.style.display = "none";
-		this.settingsPanel.innerHTML = "\n            <fieldset>\n            <legend>Touchscreen</legend>\n            <label for=tpp_assist_enable_checkbox\n                style='margin: inherit; color: inherit; display: inline-block;'\n            >\n                <input type=checkbox id=tpp_assist_enable_checkbox>\n                Enable tap overlay\n            </label>\n            <label for=tpp_assist_auto_send_checkbox\n                style='margin: inherit; color: inherit; display: inline-block;'\n            >\n                <input type=checkbox id=tpp_assist_auto_send_checkbox>\n                Automatically Send on click\n            </label>\n            <br>\n            Width: <input id=tpp_assist_width_input type=number min=0 value=320 style='width: 5em;'>\n            <br>\n            Height: <input id=tpp_assist_height_input type=number min=0 value=240 style='width: 5em;'>\n            <br>\n            Format: <input id=tpp_assist_format_input type=text value='{x},{y}' style='width: 5em;'>\n            <br>\n            <small>A warning will show in the overlay if you click too fast to warn of global ban.</small>\n            </fieldset>\n        ";
+		this.settingsPanel.innerHTML = "\n            <fieldset>\n            <legend>Touchscreen</legend>\n            <label for=tpp_assist_enable_checkbox\n                style='margin: inherit; color: inherit; display: inline-block;'\n            >\n                <input type=checkbox id=tpp_assist_enable_checkbox>\n                Enable tap overlay\n            </label>\n            <label for=tpp_assist_auto_send_checkbox\n                style='margin: inherit; color: inherit; display: inline-block;'\n            >\n                <input type=checkbox id=tpp_assist_auto_send_checkbox>\n                Automatically Send on click\n            </label>\n            <br>\n            Width: <input id=tpp_assist_width_input type=number min=0 value=320 style='width: 5em;'>\n            <br>\n            Height: <input id=tpp_assist_height_input type=number min=0 value=240 style='width: 5em;'>\n            <br>\n            Format: <input id=tpp_assist_format_input type=text value='{x},{y}' style='width: 5em;'>\n            <br>\n            <label for=tpp_assist_avoid_ban_checkbox\n                style='margin: inherit; color: inherit; display: inline-block;'\n            >\n                <input type=checkbox id=tpp_assist_avoid_ban_checkbox checked=checked>\n                Don't autosend if clicked too fast (helps avoid global ban)\n            </label>\n            </fieldset>\n        ";
 		window.document.body.appendChild(this.settingsPanel);
 		var enableCheckbox;
 		enableCheckbox = js_Boot.__cast(window.document.getElementById("tpp_assist_enable_checkbox") , HTMLInputElement);
@@ -344,6 +344,7 @@ tppinputassist_App.prototype = {
 		this.coordDisplay.style.fontSize = "0.75em";
 		this.coordDisplay.style.width = "100%";
 		this.coordDisplay.textContent = "Drag & Size Me";
+		this.coordDisplay.style.textShadow = "0px 0px 3px black";
 		var clickReceiver;
 		clickReceiver = js_Boot.__cast(window.document.createElement("div") , HTMLDivElement);
 		this.touchScreenOverlay.appendChild(clickReceiver);
@@ -369,9 +370,17 @@ tppinputassist_App.prototype = {
 			var coord = _g.calcCoordinate(event);
 			var text = StringTools.replace(StringTools.replace(_g.touchscreenFormat,"{x}",coord.x == null?"null":"" + coord.x),"{y}",coord.y == null?"null":"" + coord.y);
 			js.JQuery(_g.textarea).focus().val(text);
+			_g.coordDisplay.textContent = "" + coord.x + "," + coord.y + " *";
 			if(_g.autoSendCheckbox.checked) {
 				var dateNow = new Date();
-				if(dateNow.getTime() - _g.lastSendTime.getTime() < 1500.) _g.coordDisplay.textContent += " Slow down!";
+				var element = window.document.getElementById("tpp_assist_avoid_ban_checkbox");
+				_g.throwIfNull(element);
+				var avoidBanCheckbox;
+				avoidBanCheckbox = js_Boot.__cast(element , HTMLInputElement);
+				if(dateNow.getTime() - _g.lastSendTime.getTime() < 1500. && avoidBanCheckbox.checked) {
+					_g.coordDisplay.textContent += " Slow down! Msg not sent";
+					return;
+				}
 				_g.lastSendTime = dateNow;
 				js.JQuery(_g.sendButton).focus();
 				js.JQuery(_g.textarea).focus();
