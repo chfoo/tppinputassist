@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TPP Touchscreen Input Assist
 // @namespace    chfoo/tppinputassist
-// @version      1.4
+// @version      1.5
 // @homepage     https://github.com/chfoo/tppinputassist
 // @updateURL    https://raw.githubusercontent.com/chfoo/tppinputassist/master/tppinputassist.user.js
 // @description  Touchscreen coordinate tap overlay for inputting into Twitch chat
@@ -33,6 +33,14 @@ var Reflect = function() { };
 Reflect.__name__ = true;
 Reflect.hasField = function(o,field) {
 	return Object.prototype.hasOwnProperty.call(o,field);
+};
+Reflect.field = function(o,field) {
+	try {
+		return o[field];
+	} catch( e ) {
+		if (e instanceof js__$Boot_HaxeError) e = e.val;
+		return null;
+	}
 };
 Reflect.setField = function(o,field,value) {
 	o[field] = value;
@@ -212,10 +220,21 @@ var tppinputassist_App = function() {
 	this.touchscreenHeight = 240;
 	this.touchscreenWidth = 320;
 	this.running = false;
+	this.lastSendTime = new Date();
 };
 tppinputassist_App.__name__ = true;
 tppinputassist_App.prototype = {
 	run: function() {
+		try {
+			js.JQuery(window.document.body);
+		} catch( e ) {
+			if (e instanceof js__$Boot_HaxeError) e = e.val;
+			this.jamBootstrapJQueryIn();
+			return;
+		}
+		this.attachLoadHook();
+	}
+	,attachLoadHook: function() {
 		var _g = this;
 		js.JQuery(window.document.body).ready(function(event) {
 			if(_g.running) return;
@@ -223,6 +242,23 @@ tppinputassist_App.prototype = {
 			console.log("Page loaded, trying install script");
 			window.setTimeout($bind(_g,_g.jamJQueryIn),10000);
 		});
+	}
+	,jamBootstrapJQueryIn: function() {
+		var _g = this;
+		var scriptElement;
+		var _this = window.document;
+		scriptElement = _this.createElement("script");
+		scriptElement.src = "https://code.jquery.com/jquery-2.1.4.min.js";
+		window.document.body.appendChild(scriptElement);
+		scriptElement.onload = function() {
+			var scriptElement2;
+			var _this1 = window.document;
+			scriptElement2 = _this1.createElement("script");
+			scriptElement2.src = "https://code.jquery.com/ui/1.11.4/jquery-ui.min.js";
+			window.document.body.appendChild(scriptElement2);
+			js.JQuery = Reflect.field(window,"jQuery");
+			scriptElement2.onload = $bind(_g,_g.attachLoadHook);
+		};
 	}
 	,jamJQueryIn: function() {
 		this.installSettingsButton();
@@ -262,7 +298,7 @@ tppinputassist_App.prototype = {
 		var _g = this;
 		this.settingsPanel = js_Boot.__cast(window.document.createElement("div") , HTMLDivElement);
 		this.settingsPanel.style.display = "none";
-		this.settingsPanel.innerHTML = "\n            <fieldset>\n            <legend>Touchscreen</legend>\n            <label for=tpp_assist_enable_checkbox\n                style='margin: inherit; color: inherit; display: inline-block;'\n            >\n                <input type=checkbox id=tpp_assist_enable_checkbox>\n                Enable tap overlay\n            </label>\n            <label for=tpp_assist_auto_send_checkbox\n                style='margin: inherit; color: inherit; display: inline-block;'\n            >\n                <input type=checkbox id=tpp_assist_auto_send_checkbox>\n                Automatically Send on click\n            </label>\n            <br>\n            Width: <input id=tpp_assist_width_input type=number min=0 value=320 style='width: 5em;'>\n            <br>\n            Height: <input id=tpp_assist_height_input type=number min=0 value=240 style='width: 5em;'>\n            <br>\n            Format: <input id=tpp_assist_format_input type=text value='{x},{y}' style='width: 5em;'>\n            </fieldset>\n        ";
+		this.settingsPanel.innerHTML = "\n            <fieldset>\n            <legend>Touchscreen</legend>\n            <label for=tpp_assist_enable_checkbox\n                style='margin: inherit; color: inherit; display: inline-block;'\n            >\n                <input type=checkbox id=tpp_assist_enable_checkbox>\n                Enable tap overlay\n            </label>\n            <label for=tpp_assist_auto_send_checkbox\n                style='margin: inherit; color: inherit; display: inline-block;'\n            >\n                <input type=checkbox id=tpp_assist_auto_send_checkbox>\n                Automatically Send on click\n            </label>\n            <br>\n            Width: <input id=tpp_assist_width_input type=number min=0 value=320 style='width: 5em;'>\n            <br>\n            Height: <input id=tpp_assist_height_input type=number min=0 value=240 style='width: 5em;'>\n            <br>\n            Format: <input id=tpp_assist_format_input type=text value='{x},{y}' style='width: 5em;'>\n            <br>\n            <small>A warning will show in the overlay if you click too fast to warn of global ban.</small>\n            </fieldset>\n        ";
 		window.document.body.appendChild(this.settingsPanel);
 		var enableCheckbox;
 		enableCheckbox = js_Boot.__cast(window.document.getElementById("tpp_assist_enable_checkbox") , HTMLInputElement);
@@ -298,17 +334,16 @@ tppinputassist_App.prototype = {
 		this.touchScreenOverlay.style.height = "100px";
 		this.touchScreenOverlay.style.display = "none";
 		this.touchScreenOverlay.style.position = "absolute";
-		var coordDisplay;
-		coordDisplay = js_Boot.__cast(window.document.createElement("div") , HTMLDivElement);
-		this.touchScreenOverlay.appendChild(coordDisplay);
-		coordDisplay.style.position = "absolute";
-		coordDisplay.style.bottom = "0px";
-		coordDisplay.style.left = "0px";
-		coordDisplay.style.opacity = "0.5";
-		coordDisplay.style.color = "white";
-		coordDisplay.style.fontSize = "0.75em";
-		coordDisplay.style.width = "100%";
-		coordDisplay.textContent = "Drag & Size Me";
+		this.coordDisplay = js_Boot.__cast(window.document.createElement("div") , HTMLDivElement);
+		this.touchScreenOverlay.appendChild(this.coordDisplay);
+		this.coordDisplay.style.position = "absolute";
+		this.coordDisplay.style.bottom = "0px";
+		this.coordDisplay.style.left = "0px";
+		this.coordDisplay.style.opacity = "0.5";
+		this.coordDisplay.style.color = "white";
+		this.coordDisplay.style.fontSize = "0.75em";
+		this.coordDisplay.style.width = "100%";
+		this.coordDisplay.textContent = "Drag & Size Me";
 		var clickReceiver;
 		clickReceiver = js_Boot.__cast(window.document.createElement("div") , HTMLDivElement);
 		this.touchScreenOverlay.appendChild(clickReceiver);
@@ -335,6 +370,9 @@ tppinputassist_App.prototype = {
 			var text = StringTools.replace(StringTools.replace(_g.touchscreenFormat,"{x}",coord.x == null?"null":"" + coord.x),"{y}",coord.y == null?"null":"" + coord.y);
 			js.JQuery(_g.textarea).focus().val(text);
 			if(_g.autoSendCheckbox.checked) {
+				var dateNow = new Date();
+				if(dateNow.getTime() - _g.lastSendTime.getTime() < 1500.) _g.coordDisplay.textContent += " Slow down!";
+				_g.lastSendTime = dateNow;
 				js.JQuery(_g.sendButton).focus();
 				js.JQuery(_g.textarea).focus();
 				js.JQuery(_g.sendButton).click();
@@ -342,10 +380,10 @@ tppinputassist_App.prototype = {
 		});
 		js.JQuery(clickReceiver).mousemove(function(event1) {
 			var coord1 = _g.calcCoordinate(event1);
-			coordDisplay.textContent = "" + coord1.x + "," + coord1.y;
+			_g.coordDisplay.textContent = "" + coord1.x + "," + coord1.y;
 		});
 		js.JQuery(clickReceiver).mouseleave(function(event2) {
-			coordDisplay.textContent = "";
+			_g.coordDisplay.textContent = "";
 		});
 		var jq = js.JQuery(this.touchScreenOverlay);
 		jq.draggable({ 'handle' : dragHandle}).resizable();
@@ -387,6 +425,8 @@ function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id
 String.prototype.__class__ = String;
 String.__name__ = true;
 Array.__name__ = true;
+Date.prototype.__class__ = Date;
+Date.__name__ = ["Date"];
 var Int = { __name__ : ["Int"]};
 var Dynamic = { __name__ : ["Dynamic"]};
 var Float = Number;
