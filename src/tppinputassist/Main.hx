@@ -16,4 +16,8 @@ class Main {
         var app = new App();
         app.run();
     }
+
+    static private function __init__() {
+        untyped __js__("js.JQuery = jQuery");
+    }
 }

@@ -11,8 +11,7 @@
 // @match        https://twitch.tv/*
 // @match        https://www.twitch.tv/*
 // @grant        none
-// @require      https://code.jquery.com/jquery-2.2.3.min.js
-// @require      https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
 // ==/UserScript==
 /* jshint -W097 */
 
+(function() {
