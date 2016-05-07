@@ -6,8 +6,10 @@
 // @updateURL    https://raw.githubusercontent.com/chfoo/tppinputassist/master/tppinputassist.user.js
 // @description  Touchscreen coordinate tap overlay for inputting into Twitch chat
 // @author       Christopher Foo
-// @match        http://*.twitch.tv/*
-// @match        https://*.twitch.tv/*
+// @match        http://twitch.tv/*
+// @match        http://www.twitch.tv/*
+// @match        https://twitch.tv/*
+// @match        https://www.twitch.tv/*
 // @grant        none
 // @require      https://code.jquery.com/jquery-2.2.3.min.js
 // @require      https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
@@ -61,6 +63,11 @@ StringTools.__name__ = true;
 StringTools.replace = function(s,sub,by) {
 	return s.split(sub).join(by);
 };
+var haxe_Log = function() { };
+haxe_Log.__name__ = true;
+haxe_Log.trace = function(v,infos) {
+	js_Boot.__trace(v,infos);
+};
 var js__$Boot_HaxeError = function(val) {
 	Error.call(this);
 	this.val = val;
@@ -74,6 +81,25 @@ js__$Boot_HaxeError.prototype = $extend(Error.prototype,{
 });
 var js_Boot = function() { };
 js_Boot.__name__ = true;
+js_Boot.__unhtml = function(s) {
+	return s.split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;");
+};
+js_Boot.__trace = function(v,i) {
+	var msg;
+	if(i != null) msg = i.fileName + ":" + i.lineNumber + ": "; else msg = "";
+	msg += js_Boot.__string_rec(v,"");
+	if(i != null && i.customParams != null) {
+		var _g = 0;
+		var _g1 = i.customParams;
+		while(_g < _g1.length) {
+			var v1 = _g1[_g];
+			++_g;
+			msg += "," + js_Boot.__string_rec(v1,"");
+		}
+	}
+	var d;
+	if(typeof(document) != "undefined" && (d = document.getElementById("haxe:trace")) != null) d.innerHTML += js_Boot.__unhtml(msg) + "<br/>"; else if(typeof console != "undefined" && console.log != null) console.log(msg);
+};
 js_Boot.getClass = function(o) {
 	if((o instanceof Array) && o.__enum__ == null) return Array; else {
 		var cl = o.__class__;
@@ -225,6 +251,7 @@ var tppinputassist_App = function() {
 tppinputassist_App.__name__ = true;
 tppinputassist_App.prototype = {
 	run: function() {
+		haxe_Log.trace("TPPInputAssist script run",{ fileName : "App.hx", lineNumber : 45, className : "tppinputassist.App", methodName : "run", customParams : [window.location]});
 		try {
 			js.JQuery(window.document.body);
 		} catch( e ) {
@@ -234,12 +261,16 @@ tppinputassist_App.prototype = {
 		}
 		this.attachLoadHook();
 	}
+	,detectButtonContainer: function() {
+		var buttonContainer = window.document.querySelector(".chat-buttons-container");
+		return buttonContainer != null;
+	}
 	,attachLoadHook: function() {
 		var _g = this;
 		js.JQuery(window.document.body).ready(function(event) {
 			if(_g.running) return;
 			_g.running = true;
-			console.log("Page loaded, trying install script");
+			haxe_Log.trace("Page loaded, trying install script",{ fileName : "App.hx", lineNumber : 70, className : "tppinputassist.App", methodName : "attachLoadHook"});
 			window.setTimeout($bind(_g,_g.jamJQueryIn),10000);
 		});
 	}
@@ -261,6 +292,10 @@ tppinputassist_App.prototype = {
 		};
 	}
 	,jamJQueryIn: function() {
+		if(!this.detectButtonContainer()) {
+			haxe_Log.trace("Button container not found, exiting.",{ fileName : "App.hx", lineNumber : 94, className : "tppinputassist.App", methodName : "jamJQueryIn"});
+			return;
+		}
 		this.installSettingsButton();
 		var div;
 		div = js_Boot.__cast(window.document.createElement("div") , HTMLDivElement);
@@ -308,7 +343,7 @@ tppinputassist_App.prototype = {
 		var element = window.document.getElementById("tpp_assist_auto_send_checkbox");
 		this.throwIfNull(element);
 		this.autoSendCheckbox = js_Boot.__cast(element , HTMLInputElement);
-		element = window.document.querySelector(".send-chat-button");
+		element = window.document.querySelector("div.chat-buttons-container > button.primary");
 		this.throwIfNull(element);
 		this.sendButton = js_Boot.__cast(element , HTMLButtonElement);
 		var widthInput;
