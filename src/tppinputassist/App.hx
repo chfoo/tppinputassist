@@ -42,6 +42,8 @@ class App {
     }
 
     public function run() {
+        trace("TPPInputAssist script run", Browser.window.location);
+
         try {
             new JQuery(Browser.document.body);
         } catch (e:Dynamic) {
@@ -52,6 +54,12 @@ class App {
         attachLoadHook();
     }
 
+    function detectButtonContainer():Bool {
+        var buttonContainer:Element = Browser.document.querySelector(".chat-buttons-container");
+
+        return buttonContainer != null;
+    }
+
     function attachLoadHook() {
         new JQuery(Browser.document.body).ready(function(event:JqEvent) {
             if (running) {
@@ -60,6 +68,7 @@ class App {
 
             running = true;
             trace("Page loaded, trying install script");
+
             Browser.window.setTimeout(jamJQueryIn, 10000);
         });
     }
@@ -81,6 +90,11 @@ class App {
     }
 
     function jamJQueryIn() {
+        if (!detectButtonContainer()) {
+            trace("Button container not found, exiting.");
+            return;
+        }
+
         installSettingsButton();
 
         var div = cast(Browser.document.createElement("div"), DivElement);
@@ -175,7 +189,7 @@ class App {
         throwIfNull(element);
         autoSendCheckbox = cast(element, InputElement);
 
-        element = Browser.document.querySelector(".send-chat-button");
+        element = Browser.document.querySelector("div.chat-buttons-container > button.primary");
         throwIfNull(element);
         sendButton = cast(element, ButtonElement);
 
