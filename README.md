@@ -9,9 +9,11 @@ You will either need [Greasemonkey](https://addons.mozilla.org/firefox/addon/gre
 
 (Alternatively, you can use bookmarklet: `javascript:(function(){document.body.appendChild(document.createElement('script')).src='https://nullhound.fart.website/~chris/tppinputassist/tppinputassist.user.js';})();` . May not work; recommended to use the browser extensions.)
 
-Once enabled, reload the video page. The Twitch chat will show "TPPInputAssist" under the text box. Click it to show the settings panel.
+Once enabled, reload the video page. Wait at least 10 seconds. The Twitch chat will show "TPPInputAssist" under the text box. Click it to show the settings panel.
 
 When you enable the touchscreen feature, a box will appear on the video. Drag the box over the touchscreen portion of the video using the top handlebar. Then use the bottom handlebar to resize it. When you click within the box, the coordinates will appear in the chat text box.
+
+Some visual side-effects may occur such as the volume slider not appearing correctly so you may want to disable/enable the touchscren script as needed. Due to this bug, you may need to disable BBTV or other extensions until this is fixed. 
 
 
 Compiling
