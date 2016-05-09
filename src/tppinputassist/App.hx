@@ -105,7 +105,7 @@ class App {
     function install() {
         var element:Element;
 
-        element = Browser.document.querySelector(".chat_text_input");
+        element = Browser.document.querySelector(".chat-interface .chat_text_input");
         throwIfNull(element);
         textarea = cast(element, TextAreaElement);
 
