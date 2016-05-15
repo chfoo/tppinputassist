@@ -13,8 +13,7 @@ Once enabled, reload the video page. Wait at least 10 seconds. The Twitch chat w
 
 When you enable the touchscreen feature, a box will appear on the video. Drag the box over the touchscreen portion of the video using the top handlebar. Then use the bottom handlebar to resize it. When you click within the box, the coordinates will appear in the chat text box.
 
-Some visual side-effects may occur such as the volume slider not appearing correctly so you may want to disable/enable the touchscren script as needed. Due to this bug, you may need to disable BBTV or other extensions until this is fixed. 
-
+If you notice any visual or functional anomalies with Twitch page or extensions (such as BTV or FFZ), please file a bug report and temporary disable/enable extensions as needed.
 
 Compiling
 =========
