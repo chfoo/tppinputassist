@@ -7,6 +7,7 @@ build:
 	cat header.js > tppinputassist.user.js
 	echo >> tppinputassist.user.js
 	cat lib/jquery-2.1.4.min.js >> tppinputassist.user.js
+	echo "var jQuery = $$.noConflict(true);" >> tppinputassist.user.js
 	cat lib/jquery-ui-1.11.4.min.js | sed -r "s/(\\.)?ui-/\1tppip-ui-/g" >> tppinputassist.user.js
 	echo >> tppinputassist.user.js
 	cat script_build.js >> tppinputassist.user.js
