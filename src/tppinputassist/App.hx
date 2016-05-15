@@ -85,7 +85,7 @@ class App {
 
         throwIfNull(buttonContainer);
 
-        var enableElement:AnchorElement = cast(Browser.document.createElement("a"), AnchorElement);
+        var enableElement = Browser.document.createAnchorElement();
         enableElement.textContent = "TPPInputAssist";
         enableElement.href = "#";
         enableElement.onclick = function (event:Dynamic) {
@@ -119,7 +119,8 @@ class App {
     }
 
     function installSettingsPanel() {
-        settingsPanel = cast(Browser.document.createElement("div"), DivElement);
+        settingsPanel = Browser.document.createDivElement();
+        settingsPanel.classList.add("tpp-input-assist");
         settingsPanel.style.display = "none";
 
         // The label has inline styles to override the Twitch CSS
@@ -184,7 +185,8 @@ class App {
     }
 
     function installTouchscreenOverlay() {
-        touchScreenOverlay = cast(Browser.document.createElement("div"), DivElement);
+        touchScreenOverlay = Browser.document.createDivElement();
+        touchScreenOverlay.classList.add("tpp-input-assist");
         touchScreenOverlay.style.border = "0.1em solid grey";
         touchScreenOverlay.style.zIndex = "99";
         touchScreenOverlay.style.width = "100px";
@@ -192,7 +194,7 @@ class App {
         touchScreenOverlay.style.display = "none";
         touchScreenOverlay.style.position = "absolute";
 
-        coordDisplay = cast(Browser.document.createElement("div"), DivElement);
+        coordDisplay = Browser.document.createDivElement();
         touchScreenOverlay.appendChild(coordDisplay);
         coordDisplay.style.position = "absolute";
         coordDisplay.style.bottom = "0px";
@@ -204,7 +206,7 @@ class App {
         coordDisplay.textContent = "Drag & Size Me";
         coordDisplay.style.textShadow = "0px 0px 3px black";
 
-        var clickReceiver = cast(Browser.document.createElement("div"), DivElement);
+        var clickReceiver = Browser.document.createDivElement();
         touchScreenOverlay.appendChild(clickReceiver);
         clickReceiver.style.position = "absolute";
         clickReceiver.style.top = "0px";
@@ -212,7 +214,7 @@ class App {
         clickReceiver.style.height = "100%";
         clickReceiver.style.cursor = "crosshair";
 
-        var dragHandle = cast(Browser.document.createElement("div"), DivElement);
+        var dragHandle = Browser.document.createDivElement();
         touchScreenOverlay.appendChild(dragHandle);
         dragHandle.style.border = "0.1em outset grey";
         dragHandle.style.position = "relative";
