@@ -1232,6 +1232,6 @@ border-radius: 8px;
 }
 ';
     static public function getCSS():String {
-        return JQUERY_UI.replace("url(\"images", "url(\"https://code.jquery.com/ui/1.11.4/themes/dark-hive/images").replace(".ui-", ".tppip-ui-");
+        return JQUERY_UI.replace("url(\"images", "url(\"https://code.jquery.com/ui/1.11.4/themes/dark-hive/images").replace(".ui-", ".tppia-ui-");
     }
 }
