@@ -72,13 +72,12 @@ class App {
             return;
         }
 
+        trace("Installing settings button");
         installSettingsButton();
 
-        var div = cast(Browser.document.createElement("div"), DivElement);
-        div.innerHTML = "
-            <link rel='stylesheet' href='https://code.jquery.com/ui/1.11.4/themes/dark-hive/jquery-ui.css' type='text/css'>
-        ";
-        Browser.document.body.appendChild(div);
+        var style = Browser.document.createStyleElement();
+        style.textContent = CSS.getCSS();
+        Browser.document.body.appendChild(style);
     }
 
     function installSettingsButton() {
