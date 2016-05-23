@@ -199,7 +199,7 @@ class App {
         coordDisplay.style.position = "absolute";
         coordDisplay.style.bottom = "0px";
         coordDisplay.style.left = "0px";
-        coordDisplay.style.opacity = "0.5";
+        coordDisplay.style.opacity = "0.75";
         coordDisplay.style.color = "white";
         coordDisplay.style.fontSize = "0.75em";
         coordDisplay.style.width = "100%";
