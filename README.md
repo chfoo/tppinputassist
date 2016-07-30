@@ -13,7 +13,9 @@ Once enabled, reload the video page. Wait at least 10 seconds. The Twitch chat w
 
 When you enable the touchscreen feature, a box will appear on the video. Drag the box over the touchscreen portion of the video using the top handlebar. Then use the bottom handlebar to resize it. When you click within the box, the coordinates will appear in the chat text box.
 
-If you notice any visual or functional anomalies with Twitch page or extensions (such as BTV or FFZ), please file a bug report and temporary disable/enable extensions as needed.
+The DS uses a 256×192 pixel touchscreen and the 3DS uses 320×240 touchscreen. Be sure to adjust the size setting if needed.
+
+If you notice any visual or functional anomalies with Twitch page or extensions (such as BTTV or FFZ), please file a bug report and temporary disable/enable extensions as needed.
 
 Compiling
 =========
