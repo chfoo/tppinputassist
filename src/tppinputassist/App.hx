@@ -1,5 +1,6 @@
 package tppinputassist;
 
+import haxe.Json;
 import js.html.ButtonElement;
 import js.JQuery;
 import js.html.InputElement;
@@ -32,6 +33,9 @@ class App {
     var autoSendCheckbox:InputElement;
     var sendButton:ButtonElement;
     var coordDisplay:DivElement;
+    var widthInput:InputElement;
+    var heightInput:InputElement;
+    var formatElement:InputElement;
     var touchscreenWidth = 320;
     var touchscreenHeight = 240;
     var touchscreenFormat = "{x},{y}";
@@ -110,6 +114,7 @@ class App {
 
         installSettingsPanel();
         installTouchscreenOverlay();
+        loadSettings();
     }
 
     function throwIfNull(element:Element) {
@@ -160,6 +165,7 @@ class App {
         var enableCheckbox = cast(Browser.document.getElementById("tpp_assist_enable_checkbox"), InputElement);
         enableCheckbox.onclick = function (event:Event) {
             showTouchscreenOverlay(enableCheckbox.checked);
+            loadSettings();
         }
 
         var element = Browser.document.getElementById("tpp_assist_auto_send_checkbox");
@@ -170,17 +176,19 @@ class App {
         throwIfNull(element);
         sendButton = cast(element, ButtonElement);
 
-        var widthInput = cast(Browser.document.getElementById("tpp_assist_width_input"), InputElement);
-        var heightInput = cast(Browser.document.getElementById("tpp_assist_height_input"), InputElement);
+        widthInput = cast(Browser.document.getElementById("tpp_assist_width_input"), InputElement);
+        heightInput = cast(Browser.document.getElementById("tpp_assist_height_input"), InputElement);
 
         widthInput.onchange = heightInput.onchange = function(event:Event) {
             touchscreenWidth = Std.parseInt(widthInput.value);
             touchscreenHeight = Std.parseInt(heightInput.value);
+            saveSettings();
         }
 
-        var formatElement = cast(Browser.document.getElementById("tpp_assist_format_input"), InputElement);
+        formatElement = cast(Browser.document.getElementById("tpp_assist_format_input"), InputElement);
         formatElement.onchange = function(event:Event) {
             touchscreenFormat = formatElement.value;
+            saveSettings();
         }
     }
 
@@ -267,7 +275,12 @@ class App {
         });
 
         var jq = new JQuery(touchScreenOverlay);
-        untyped jq.draggable({"handle": dragHandle}).resizable();
+        untyped jq.draggable({handle: dragHandle})
+            .resizable({
+                stop: function (event: Event, ui: Dynamic) {
+                    saveSettings();
+            }
+        });
     }
 
     function calcCoordinate(event:JqEvent):XY {
@@ -297,5 +310,37 @@ class App {
         } else {
             touchScreenOverlay.style.display = "none";
         }
+    }
+
+    function loadSettings() {
+        var docString = Browser.window.localStorage.getItem(
+            'tppinputassist-${Browser.window.location.pathname}-settings');
+        if (docString == null) {
+            return;
+        }
+
+        var doc = Json.parse(docString);
+
+        widthInput.value = Std.string(touchscreenWidth = Reflect.field(doc, "width"));
+        heightInput.value = Std.string(touchscreenHeight = Reflect.field(doc, "height"));
+        formatElement.value = touchscreenFormat = Reflect.field(doc, "format");
+
+        touchScreenOverlay.style.width = Reflect.field(doc, "overlayWidth");
+        touchScreenOverlay.style.height = Reflect.field(doc, "overlayHeight");
+    }
+
+    function saveSettings() {
+        var doc = {
+            width: widthInput.value,
+            height: heightInput.value,
+            format: formatElement.value,
+            overlayWidth: touchScreenOverlay.style.width,
+            overlayHeight: touchScreenOverlay.style.height
+        };
+
+        Browser.window.localStorage.setItem(
+            'tppinputassist-${Browser.window.location.pathname}-settings',
+            Json.stringify(doc)
+        );
     }
 }
