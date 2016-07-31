@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TPP Touchscreen Input Assist
 // @namespace    chfoo/tppinputassist
-// @version      1.6.7
+// @version      1.7
 // @homepage     https://github.com/chfoo/tppinputassist
 // @updateURL    https://raw.githubusercontent.com/chfoo/tppinputassist/master/tppinputassist.user.js
 // @description  Touchscreen coordinate tap overlay for inputting into Twitch chat
@@ -52,6 +52,15 @@ HxOverrides.cca = function(s,index) {
 	return x;
 };
 Math.__name__ = true;
+var Reflect = function() { };
+Reflect.__name__ = true;
+Reflect.field = function(o,field) {
+	try {
+		return o[field];
+	} catch( e ) {
+		return null;
+	}
+};
 var Std = function() { };
 Std.__name__ = true;
 Std.string = function(s) {
@@ -336,7 +345,7 @@ var tppinputassist_App = function() {
 tppinputassist_App.__name__ = true;
 tppinputassist_App.prototype = {
 	run: function() {
-		haxe_Log.trace("TPPInputAssist script run",{ fileName : "App.hx", lineNumber : 45, className : "tppinputassist.App", methodName : "run", customParams : [window.location]});
+		haxe_Log.trace("TPPInputAssist script run",{ fileName : "App.hx", lineNumber : 49, className : "tppinputassist.App", methodName : "run", customParams : [window.location]});
 		this.attachLoadHook();
 	}
 	,detectButtonContainer: function() {
@@ -349,16 +358,16 @@ tppinputassist_App.prototype = {
 				return;
 			}
 			_gthis.running = true;
-			haxe_Log.trace("Page loaded, trying install script",{ fileName : "App.hx", lineNumber : 63, className : "tppinputassist.App", methodName : "attachLoadHook"});
-			window.setTimeout($bind(_gthis,_gthis.jamJQueryIn),10000);
+			haxe_Log.trace("Page loaded, trying install script",{ fileName : "App.hx", lineNumber : 67, className : "tppinputassist.App", methodName : "attachLoadHook"});
+			window.setTimeout($bind(_gthis,_gthis.jamJQueryIn),2000);
 		});
 	}
 	,jamJQueryIn: function() {
 		if(!this.detectButtonContainer()) {
-			haxe_Log.trace("Button container not found, exiting.",{ fileName : "App.hx", lineNumber : 71, className : "tppinputassist.App", methodName : "jamJQueryIn"});
+			haxe_Log.trace("Button container not found, exiting.",{ fileName : "App.hx", lineNumber : 75, className : "tppinputassist.App", methodName : "jamJQueryIn"});
 			return;
 		}
-		haxe_Log.trace("Installing settings button",{ fileName : "App.hx", lineNumber : 75, className : "tppinputassist.App", methodName : "jamJQueryIn"});
+		haxe_Log.trace("Installing settings button",{ fileName : "App.hx", lineNumber : 79, className : "tppinputassist.App", methodName : "jamJQueryIn"});
 		this.installSettingsButton();
 		var style = window.document.createElement("style");
 		style.textContent = tppinputassist_CSS.getCSS();
@@ -387,6 +396,7 @@ tppinputassist_App.prototype = {
 		this.textarea = js_Boot.__cast(element , HTMLTextAreaElement);
 		this.installSettingsPanel();
 		this.installTouchscreenOverlay();
+		this.loadSettings();
 	}
 	,throwIfNull: function(element) {
 		if(element == null) {
@@ -403,6 +413,7 @@ tppinputassist_App.prototype = {
 		var enableCheckbox = js_Boot.__cast(window.document.getElementById("tpp_assist_enable_checkbox") , HTMLInputElement);
 		enableCheckbox.onclick = function(event) {
 			_gthis.showTouchscreenOverlay(enableCheckbox.checked);
+			_gthis.loadSettings();
 		};
 		var element = window.document.getElementById("tpp_assist_auto_send_checkbox");
 		this.throwIfNull(element);
@@ -410,15 +421,17 @@ tppinputassist_App.prototype = {
 		element = window.document.querySelector("div.chat-buttons-container > button.js-chat-buttons__submit");
 		this.throwIfNull(element);
 		this.sendButton = js_Boot.__cast(element , HTMLButtonElement);
-		var widthInput = js_Boot.__cast(window.document.getElementById("tpp_assist_width_input") , HTMLInputElement);
-		var heightInput = js_Boot.__cast(window.document.getElementById("tpp_assist_height_input") , HTMLInputElement);
-		widthInput.onchange = heightInput.onchange = function(event1) {
-			_gthis.touchscreenWidth = Std.parseInt(widthInput.value);
-			_gthis.touchscreenHeight = Std.parseInt(heightInput.value);
+		this.widthInput = js_Boot.__cast(window.document.getElementById("tpp_assist_width_input") , HTMLInputElement);
+		this.heightInput = js_Boot.__cast(window.document.getElementById("tpp_assist_height_input") , HTMLInputElement);
+		this.widthInput.onchange = this.heightInput.onchange = function(event1) {
+			_gthis.touchscreenWidth = Std.parseInt(_gthis.widthInput.value);
+			_gthis.touchscreenHeight = Std.parseInt(_gthis.heightInput.value);
+			_gthis.saveSettings();
 		};
-		var formatElement = js_Boot.__cast(window.document.getElementById("tpp_assist_format_input") , HTMLInputElement);
-		formatElement.onchange = function(event2) {
-			_gthis.touchscreenFormat = formatElement.value;
+		this.formatElement = js_Boot.__cast(window.document.getElementById("tpp_assist_format_input") , HTMLInputElement);
+		this.formatElement.onchange = function(event2) {
+			_gthis.touchscreenFormat = _gthis.formatElement.value;
+			_gthis.saveSettings();
 		};
 	}
 	,installTouchscreenOverlay: function() {
@@ -489,7 +502,9 @@ tppinputassist_App.prototype = {
 			_gthis.coordDisplay.textContent = "";
 		});
 		var jq = js.JQuery(this.touchScreenOverlay);
-		jq.draggable({ 'handle' : dragHandle}).resizable();
+		jq.draggable({ handle : dragHandle}).resizable({ stop : function(event3,ui) {
+			_gthis.saveSettings();
+		}});
 	}
 	,calcCoordinate: function(event) {
 		var offset = js.JQuery(this.touchScreenOverlay).offset();
@@ -512,6 +527,21 @@ tppinputassist_App.prototype = {
 		} else {
 			this.touchScreenOverlay.style.display = "none";
 		}
+	}
+	,loadSettings: function() {
+		var docString = window.localStorage.getItem("tppinputassist-" + window.location.pathname + "-settings");
+		if(docString == null) {
+			return;
+		}
+		var doc = JSON.parse(docString);
+		this.widthInput.value = Std.string(this.touchscreenWidth = Reflect.field(doc,"width"));
+		this.heightInput.value = Std.string(this.touchscreenHeight = Reflect.field(doc,"height"));
+		this.formatElement.value = this.touchscreenFormat = Reflect.field(doc,"format");
+		this.touchScreenOverlay.style.width = Reflect.field(doc,"overlayWidth");
+		this.touchScreenOverlay.style.height = Reflect.field(doc,"overlayHeight");
+	}
+	,saveSettings: function() {
+		window.localStorage.setItem("tppinputassist-" + window.location.pathname + "-settings",JSON.stringify({ width : this.widthInput.value, height : this.heightInput.value, format : this.formatElement.value, overlayWidth : this.touchScreenOverlay.style.width, overlayHeight : this.touchScreenOverlay.style.height}));
 	}
 	,__class__: tppinputassist_App
 };
