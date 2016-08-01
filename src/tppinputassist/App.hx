@@ -66,7 +66,7 @@ class App {
             running = true;
             trace("Page loaded, trying install script");
 
-            Browser.window.setTimeout(jamJQueryIn, 2000);
+            Browser.window.setTimeout(jamJQueryIn, 4000);
         });
     }
 
