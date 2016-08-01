@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TPP Touchscreen Input Assist
 // @namespace    chfoo/tppinputassist
-// @version      1.7
+// @version      1.7.1
 // @homepage     https://github.com/chfoo/tppinputassist
 // @updateURL    https://raw.githubusercontent.com/chfoo/tppinputassist/master/tppinputassist.user.js
 // @description  Touchscreen coordinate tap overlay for inputting into Twitch chat
@@ -359,7 +359,7 @@ tppinputassist_App.prototype = {
 			}
 			_gthis.running = true;
 			haxe_Log.trace("Page loaded, trying install script",{ fileName : "App.hx", lineNumber : 67, className : "tppinputassist.App", methodName : "attachLoadHook"});
-			window.setTimeout($bind(_gthis,_gthis.jamJQueryIn),2000);
+			window.setTimeout($bind(_gthis,_gthis.jamJQueryIn),4000);
 		});
 	}
 	,jamJQueryIn: function() {
