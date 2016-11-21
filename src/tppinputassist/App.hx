@@ -275,7 +275,10 @@ class App {
         });
 
         var jq = new JQuery(touchScreenOverlay);
-        untyped jq.draggable({handle: dragHandle})
+        untyped jq.draggable({
+            handle: dragHandle,
+            stop: function () { saveSettings(); }
+            })
             .resizable({
                 stop: function (event: Event, ui: Dynamic) {
                     saveSettings();
@@ -305,8 +308,11 @@ class App {
 
         if (visible) {
             touchScreenOverlay.style.display = "block";
-            touchScreenOverlay.style.top = top;
-            touchScreenOverlay.style.left = left;
+
+            if (touchScreenOverlay.style.top == "") {
+                touchScreenOverlay.style.top = top;
+                touchScreenOverlay.style.left = left;
+            }
         } else {
             touchScreenOverlay.style.display = "none";
         }
@@ -321,12 +327,22 @@ class App {
 
         var doc = Json.parse(docString);
 
-        widthInput.value = Std.string(touchscreenWidth = Reflect.field(doc, "width"));
-        heightInput.value = Std.string(touchscreenHeight = Reflect.field(doc, "height"));
-        formatElement.value = touchscreenFormat = Reflect.field(doc, "format");
+        if (Reflect.hasField(doc, "width") && Reflect.hasField(doc, "height") &&
+                Reflect.hasField(doc, "format")) {
+            widthInput.value = Std.string(touchscreenWidth = Reflect.field(doc, "width"));
+            heightInput.value = Std.string(touchscreenHeight = Reflect.field(doc, "height"));
+            formatElement.value = touchscreenFormat = Reflect.field(doc, "format");
+        }
 
-        touchScreenOverlay.style.width = Reflect.field(doc, "overlayWidth");
-        touchScreenOverlay.style.height = Reflect.field(doc, "overlayHeight");
+        if (Reflect.hasField(doc, "overlayWidth") && Reflect.hasField(doc, "overlayHeight")) {
+            touchScreenOverlay.style.width = Reflect.field(doc, "overlayWidth");
+            touchScreenOverlay.style.height = Reflect.field(doc, "overlayHeight");
+        }
+
+        if (Reflect.hasField(doc, "overlayX") && Reflect.hasField(doc, "overlayY")) {
+            touchScreenOverlay.style.left = Reflect.field(doc, "overlayX");
+            touchScreenOverlay.style.top = Reflect.field(doc, "overlayY");
+        }
     }
 
     function saveSettings() {
@@ -335,7 +351,9 @@ class App {
             height: heightInput.value,
             format: formatElement.value,
             overlayWidth: touchScreenOverlay.style.width,
-            overlayHeight: touchScreenOverlay.style.height
+            overlayHeight: touchScreenOverlay.style.height,
+            overlayX: touchScreenOverlay.style.left,
+            overlayY: touchScreenOverlay.style.top
         };
 
         Browser.window.localStorage.setItem(

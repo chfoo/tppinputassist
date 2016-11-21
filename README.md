@@ -20,6 +20,6 @@ If you notice any visual or functional anomalies with Twitch page or extensions 
 Compiling
 =========
 
-To compile the script on Linux, install Haxe 3.2. Then run the makefile with `make` and the JavaScript output will be in the same directory.
+To compile the script on Linux, install Haxe 3.3. Then run the makefile with `make` and the JavaScript output will be in the same directory.
 
 
