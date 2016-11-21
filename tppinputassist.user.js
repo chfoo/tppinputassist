@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TPP Touchscreen Input Assist
 // @namespace    chfoo/tppinputassist
-// @version      1.7.1
+// @version      1.8
 // @homepage     https://github.com/chfoo/tppinputassist
 // @updateURL    https://raw.githubusercontent.com/chfoo/tppinputassist/master/tppinputassist.user.js
 // @description  Touchscreen coordinate tap overlay for inputting into Twitch chat
@@ -502,7 +502,9 @@ tppinputassist_App.prototype = {
 			_gthis.coordDisplay.textContent = "";
 		});
 		var jq = js.JQuery(this.touchScreenOverlay);
-		jq.draggable({ handle : dragHandle}).resizable({ stop : function(event3,ui) {
+		jq.draggable({ handle : dragHandle, containment : "document", stop : function() {
+			_gthis.saveSettings();
+		}}).resizable({ stop : function(event3,ui) {
 			_gthis.saveSettings();
 		}});
 	}
@@ -522,8 +524,10 @@ tppinputassist_App.prototype = {
 		}
 		if(visible) {
 			this.touchScreenOverlay.style.display = "block";
-			this.touchScreenOverlay.style.top = top;
-			this.touchScreenOverlay.style.left = left;
+			if(this.touchScreenOverlay.style.top == "") {
+				this.touchScreenOverlay.style.top = top;
+				this.touchScreenOverlay.style.left = left;
+			}
 		} else {
 			this.touchScreenOverlay.style.display = "none";
 		}
@@ -534,14 +538,22 @@ tppinputassist_App.prototype = {
 			return;
 		}
 		var doc = JSON.parse(docString);
-		this.widthInput.value = Std.string(this.touchscreenWidth = Reflect.field(doc,"width"));
-		this.heightInput.value = Std.string(this.touchscreenHeight = Reflect.field(doc,"height"));
-		this.formatElement.value = this.touchscreenFormat = Reflect.field(doc,"format");
-		this.touchScreenOverlay.style.width = Reflect.field(doc,"overlayWidth");
-		this.touchScreenOverlay.style.height = Reflect.field(doc,"overlayHeight");
+		if(Object.prototype.hasOwnProperty.call(doc,"width") && Object.prototype.hasOwnProperty.call(doc,"height") && Object.prototype.hasOwnProperty.call(doc,"format")) {
+			this.widthInput.value = Std.string(this.touchscreenWidth = Reflect.field(doc,"width"));
+			this.heightInput.value = Std.string(this.touchscreenHeight = Reflect.field(doc,"height"));
+			this.formatElement.value = this.touchscreenFormat = Reflect.field(doc,"format");
+		}
+		if(Object.prototype.hasOwnProperty.call(doc,"overlayWidth") && Object.prototype.hasOwnProperty.call(doc,"overlayHeight")) {
+			this.touchScreenOverlay.style.width = Reflect.field(doc,"overlayWidth");
+			this.touchScreenOverlay.style.height = Reflect.field(doc,"overlayHeight");
+		}
+		if(Object.prototype.hasOwnProperty.call(doc,"overlayX") && Object.prototype.hasOwnProperty.call(doc,"overlayY")) {
+			this.touchScreenOverlay.style.left = Reflect.field(doc,"overlayX");
+			this.touchScreenOverlay.style.top = Reflect.field(doc,"overlayY");
+		}
 	}
 	,saveSettings: function() {
-		window.localStorage.setItem("tppinputassist-" + window.location.pathname + "-settings",JSON.stringify({ width : this.widthInput.value, height : this.heightInput.value, format : this.formatElement.value, overlayWidth : this.touchScreenOverlay.style.width, overlayHeight : this.touchScreenOverlay.style.height}));
+		window.localStorage.setItem("tppinputassist-" + window.location.pathname + "-settings",JSON.stringify({ width : this.widthInput.value, height : this.heightInput.value, format : this.formatElement.value, overlayWidth : this.touchScreenOverlay.style.width, overlayHeight : this.touchScreenOverlay.style.height, overlayX : this.touchScreenOverlay.style.left, overlayY : this.touchScreenOverlay.style.top}));
 	}
 	,__class__: tppinputassist_App
 };
