@@ -277,6 +277,7 @@ class App {
         var jq = new JQuery(touchScreenOverlay);
         untyped jq.draggable({
             handle: dragHandle,
+            containment: "document",
             stop: function () { saveSettings(); }
             })
             .resizable({
