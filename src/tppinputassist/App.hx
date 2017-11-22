@@ -1,15 +1,14 @@
 package tppinputassist;
 
 import haxe.Json;
+import js.Browser;
 import js.html.ButtonElement;
-import js.JQuery;
-import js.html.InputElement;
-import js.html.Event;
-import js.html.AnchorElement;
 import js.html.DivElement;
 import js.html.Element;
+import js.html.Event;
+import js.html.InputElement;
 import js.html.TextAreaElement;
-import js.Browser;
+import js.jquery.JQuery;
 
 using StringTools;
 
@@ -58,7 +57,7 @@ class App {
     }
 
     function attachLoadHook() {
-        new JQuery(Browser.document.body).ready(function(event:JqEvent) {
+        new JQuery(Browser.document.body).ready(function(event:js.jquery.Event) {
             if (running) {
                 return;
             }
@@ -66,7 +65,7 @@ class App {
             running = true;
             trace("Page loaded, trying install script");
 
-            Browser.window.setTimeout(jamJQueryIn, 4000);
+            Browser.window.setTimeout(jamJQueryIn, 2000);
         });
     }
 
@@ -85,7 +84,9 @@ class App {
     }
 
     function installSettingsButton() {
-        var buttonContainer:Element = Browser.document.querySelector(".chat-buttons-container");
+        var buttonContainer:Element = null;
+
+        buttonContainer = Browser.document.querySelector(".chat-buttons-container > div.flex-row");
 
         throwIfNull(buttonContainer);
 
@@ -108,7 +109,8 @@ class App {
     function install() {
         var element:Element;
 
-        element = Browser.document.querySelector(".chat-interface .chat_text_input");
+        element = Browser.document.querySelector(".chat-input textarea[data-a-target='chat-input']");
+
         throwIfNull(element);
         textarea = cast(element, TextAreaElement);
 
@@ -139,11 +141,13 @@ class App {
                 Enable tap overlay
             </label>
             <label for=tpp_assist_auto_send_checkbox
-                style='margin: inherit; color: inherit; display: inline-block;'
+                style='margin: inherit; color: inherit; xxx-display: inline-block; display:none;'
             >
                 <input type=checkbox id=tpp_assist_auto_send_checkbox>
                 Automatically Send on click
             </label>
+            <br>
+            <small>(AutoSend is broken.)</small>
             <br>
             Width: <input id=tpp_assist_width_input type=number min=0 value=320 style='width: 5em;'>
             <br>
@@ -172,7 +176,8 @@ class App {
         throwIfNull(element);
         autoSendCheckbox = cast(element, InputElement);
 
-        element = Browser.document.querySelector("div.chat-buttons-container > button.js-chat-buttons__submit");
+        element = Browser.document.querySelector("div.chat-buttons-container > button[data-a-target='chat-send-button']");
+
         throwIfNull(element);
         sendButton = cast(element, ButtonElement);
 
@@ -196,7 +201,7 @@ class App {
         touchScreenOverlay = Browser.document.createDivElement();
         touchScreenOverlay.classList.add("tpp-input-assist");
         touchScreenOverlay.style.border = "0.1em solid grey";
-        touchScreenOverlay.style.zIndex = "99";
+        touchScreenOverlay.style.zIndex = "1001";
         touchScreenOverlay.style.width = "100px";
         touchScreenOverlay.style.height = "100px";
         touchScreenOverlay.style.display = "none";
@@ -236,12 +241,21 @@ class App {
 
         Browser.document.body.appendChild(touchScreenOverlay);
 
-        new JQuery(clickReceiver).click(function (event:JqEvent) {
+        new JQuery(clickReceiver).click(function (event:js.jquery.Event) {
             var coord = calcCoordinate(event);
+
+            // var eventDown = new js.jquery.Event("keydown");
+            // var eventUp = new js.jquery.Event("keyup");
+            // var eventPress = new js.jquery.Event("keypress");
+            // eventDown.which = eventUp.which = eventPress.which = 32; // space
+
             var text = touchscreenFormat
                 .replace("{x}", Std.string(coord.x))
                 .replace("{y}", Std.string(coord.y));
-            new JQuery(textarea).focus().val(text);
+
+            new JQuery(textarea).focus().val(text)
+                .trigger("change");
+                // .trigger(eventDown).trigger(eventUp).trigger(eventPress);
 
             coordDisplay.textContent = '${coord.x},${coord.y} *';
 
@@ -265,12 +279,12 @@ class App {
             }
         });
 
-        new JQuery(clickReceiver).mousemove(function (event:JqEvent) {
+        new JQuery(clickReceiver).mousemove(function (event:js.jquery.Event) {
             var coord = calcCoordinate(event);
             coordDisplay.textContent = '${coord.x},${coord.y}';
         });
 
-        new JQuery(clickReceiver).mouseleave(function (event:JqEvent) {
+        new JQuery(clickReceiver).mouseleave(function (event:js.jquery.Event) {
             coordDisplay.textContent = "";
         });
 
@@ -287,7 +301,7 @@ class App {
         });
     }
 
-    function calcCoordinate(event:JqEvent):XY {
+    function calcCoordinate(event:js.jquery.Event):XY {
         var offset = new JQuery(touchScreenOverlay).offset();
         var divWidth = new JQuery(touchScreenOverlay).width();
         var divHeight = new JQuery(touchScreenOverlay).height();

@@ -9,15 +9,24 @@
 </div>
 
 <br>
-<div class="chat-interface">
-<div>
-<textarea class="chat_text_input">
-</textarea>
+
+<div class="chat-input">
+    <div>
+        <textarea data-a-target="chat-input">
+        </textarea>
+    </div>
 </div>
+
+
 <div class="chat-buttons-container">
-<button class="button float-right qa-chat-buttons__submit js-chat-buttons__submit">Send</button>
+    <div class="flex flex-row">
+        <div>
+            <button>Options</button>
+        </div>
+        <button>Viewer list</button>
+    </div>
+    <button data-a-target="chat-send-button">Send</button>
 </div>
-<!--<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
-<script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>-->
+
 <script src="tppinputassist.user.js"></script>
 </body>

@@ -18,6 +18,6 @@ class Main {
     }
 
     static private function __init__() {
-        untyped __js__("js.JQuery = jQuery");
+        untyped __js__("var $ = jQuery;");
     }
 }

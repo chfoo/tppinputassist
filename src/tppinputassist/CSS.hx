@@ -60,7 +60,7 @@ class CSS {
 }
 
 .ui-front {
-	z-index: 100;
+	z-index: 1002;
 }
 
 

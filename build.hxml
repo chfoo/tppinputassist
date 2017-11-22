@@ -1,1 +1,3 @@
--cp src/ -main tppinputassist.Main -js script_build.js
+-cp src/
+-main tppinputassist.Main
+-js script_build.js
