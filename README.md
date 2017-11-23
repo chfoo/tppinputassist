@@ -13,7 +13,7 @@ Once enabled, reload the video page. Wait at least 10 seconds. The Twitch chat w
 
 When you enable the touchscreen feature, a box will appear on the video. Drag the box over the touchscreen portion of the video using the top handlebar. Then use the bottom handlebar to resize it. When you click within the box, the coordinates will appear in the chat text box.
 
-Due to problems with Twitch using What-Input, sending messages and auto-sending messages is **broken**. You need to **add a space to your message** before it recognizes that the textbox has text.
+Due to problems with Twitch using What-Input, sending messages and auto-sending messages is **broken**. You need to **add a space to your message** before it recognizes that the textbox has text. Also, **don't use theater mode**; it will cover up the touchscreen.
 
 The DS uses a 256×192 pixel touchscreen and the 3DS uses 320×240 touchscreen. Be sure to adjust the size setting if needed.
 
