@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TPP Touchscreen Input Assist
 // @namespace    chfoo/tppinputassist
-// @version      1.8.1
+// @version      1.8.2
 // @homepage     https://github.com/chfoo/tppinputassist
 // @updateURL    https://raw.githubusercontent.com/chfoo/tppinputassist/master/tppinputassist.user.js
 // @description  Touchscreen coordinate tap overlay for inputting into Twitch chat
@@ -350,7 +350,7 @@ tppinputassist_App.prototype = {
 		this.attachLoadHook();
 	}
 	,detectButtonContainer: function() {
-		var buttonContainer = window.document.querySelector(".chat-buttons-container");
+		var buttonContainer = window.document.querySelector(".chat-input__buttons-container");
 		return buttonContainer != null;
 	}
 	,attachLoadHook: function() {
@@ -378,7 +378,7 @@ tppinputassist_App.prototype = {
 	,installSettingsButton: function() {
 		var _gthis = this;
 		var buttonContainer = null;
-		buttonContainer = window.document.querySelector(".chat-buttons-container > div.flex-row");
+		buttonContainer = window.document.querySelector(".chat-input__buttons-container > div.flex-row");
 		this.throwIfNull(buttonContainer);
 		var enableElement = window.document.createElement("a");
 		enableElement.textContent = "TPPInputAssist";
@@ -421,7 +421,7 @@ tppinputassist_App.prototype = {
 		var element = window.document.getElementById("tpp_assist_auto_send_checkbox");
 		this.throwIfNull(element);
 		this.autoSendCheckbox = js_Boot.__cast(element , HTMLInputElement);
-		element = window.document.querySelector("div.chat-buttons-container > button[data-a-target='chat-send-button']");
+		element = window.document.querySelector("div.chat-input__buttons-container > button[data-a-target='chat-send-button']");
 		this.throwIfNull(element);
 		this.sendButton = js_Boot.__cast(element , HTMLButtonElement);
 		this.widthInput = js_Boot.__cast(window.document.getElementById("tpp_assist_width_input") , HTMLInputElement);
