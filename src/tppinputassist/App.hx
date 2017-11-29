@@ -51,7 +51,7 @@ class App {
     }
 
     function detectButtonContainer():Bool {
-        var buttonContainer:Element = Browser.document.querySelector(".chat-buttons-container");
+        var buttonContainer:Element = Browser.document.querySelector(".chat-input__buttons-container");
 
         return buttonContainer != null;
     }
@@ -86,7 +86,7 @@ class App {
     function installSettingsButton() {
         var buttonContainer:Element = null;
 
-        buttonContainer = Browser.document.querySelector(".chat-buttons-container > div.flex-row");
+        buttonContainer = Browser.document.querySelector(".chat-input__buttons-container > div.flex-row");
 
         throwIfNull(buttonContainer);
 
@@ -176,7 +176,7 @@ class App {
         throwIfNull(element);
         autoSendCheckbox = cast(element, InputElement);
 
-        element = Browser.document.querySelector("div.chat-buttons-container > button[data-a-target='chat-send-button']");
+        element = Browser.document.querySelector("div.chat-input__buttons-container > button[data-a-target='chat-send-button']");
 
         throwIfNull(element);
         sendButton = cast(element, ButtonElement);
