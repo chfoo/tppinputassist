@@ -86,7 +86,7 @@ class App {
     function installSettingsButton() {
         var buttonContainer:Element = null;
 
-        buttonContainer = Browser.document.querySelector(".chat-input__buttons-container > div.flex-row");
+        buttonContainer = Browser.document.querySelector(".chat-input__buttons-container > div.tw-flex-row");
 
         throwIfNull(buttonContainer);
 
