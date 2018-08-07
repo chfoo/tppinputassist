@@ -141,13 +141,13 @@ class App {
                 Enable tap overlay
             </label>
             <label for=tpp_assist_auto_send_checkbox
-                style='margin: inherit; color: inherit; xxx-display: inline-block; display:none;'
+                style='margin: inherit; color: inherit; display: inline-block; xxx-display:none;'
             >
                 <input type=checkbox id=tpp_assist_auto_send_checkbox>
                 Automatically Send on click
             </label>
-            <br>
-            <small>(AutoSend is broken.)</small>
+            <!--<br>
+            <small>(AutoSend is broken.)</small>-->
             <br>
             Width: <input id=tpp_assist_width_input type=number min=0 value=320 style='width: 5em;'>
             <br>
@@ -243,19 +243,17 @@ class App {
 
         new JQuery(clickReceiver).click(function (event:js.jquery.Event) {
             var coord = calcCoordinate(event);
-
-            // var eventDown = new js.jquery.Event("keydown");
-            // var eventUp = new js.jquery.Event("keyup");
-            // var eventPress = new js.jquery.Event("keypress");
-            // eventDown.which = eventUp.which = eventPress.which = 32; // space
-
             var text = touchscreenFormat
                 .replace("{x}", Std.string(coord.x))
                 .replace("{y}", Std.string(coord.y));
 
-            new JQuery(textarea).focus().val(text)
-                .trigger("change");
-                // .trigger(eventDown).trigger(eventUp).trigger(eventPress);
+            // new JQuery(textarea).focus().val(text).attr("value", text);
+            // Trigger React
+            // https://github.com/facebook/react/issues/10135
+            untyped Object.getOwnPropertyDescriptor(Object.getPrototypeOf(textarea), "value").set.call(textarea, text);
+            // untyped Object.getOwnPropertyDescriptor(textarea, "value").set.call(textarea, text);
+            var changeEvent = new Event("input", { bubbles: true, cancelable: true });
+            textarea.dispatchEvent(changeEvent);
 
             coordDisplay.textContent = '${coord.x},${coord.y} *';
 
@@ -275,7 +273,10 @@ class App {
 
                 new JQuery(sendButton).focus();
                 new JQuery(textarea).focus();
-                new JQuery(sendButton).click();
+
+                // new JQuery(sendButton).click();
+                var clickEvent = new Event("click", { bubbles: true, cancelable: true });
+                sendButton.dispatchEvent(clickEvent);
             }
         });
 
