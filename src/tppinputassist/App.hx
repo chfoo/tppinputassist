@@ -176,7 +176,7 @@ class App {
         throwIfNull(element);
         autoSendCheckbox = cast(element, InputElement);
 
-        element = Browser.document.querySelector("div.chat-input__buttons-container > button[data-a-target='chat-send-button']");
+        element = Browser.document.querySelector("div.chat-input__buttons-container > div > button[data-a-target='chat-send-button']");
 
         throwIfNull(element);
         sendButton = cast(element, ButtonElement);

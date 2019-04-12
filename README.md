@@ -24,4 +24,4 @@ Compiling
 
 (This instruction is for users who wish to compare the precompiled script with the source code.)
 
-To compile the script on Linux, install Haxe 3.4. Then run the makefile with `make` and the JavaScript output will be in the same directory.
+To compile the script on Linux, install Haxe 4.0. Then run the makefile with `make` and the JavaScript output will be in the same directory.

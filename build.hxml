@@ -1,3 +1,4 @@
 -cp src/
 -main tppinputassist.Main
+-lib jQueryExtern
 -js script_build.js
