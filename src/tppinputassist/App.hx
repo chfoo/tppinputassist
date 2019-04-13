@@ -100,6 +100,7 @@ class App {
 
             var jq = new JQuery(settingsPanel);
             untyped jq.dialog({"title": "TPP Input Assist Settings"});
+            untyped jq.dialog("widget").css("z-index", "3002");
             return false;
         }
 
@@ -201,7 +202,7 @@ class App {
         touchScreenOverlay = Browser.document.createDivElement();
         touchScreenOverlay.classList.add("tpp-input-assist");
         touchScreenOverlay.style.border = "0.1em solid grey";
-        touchScreenOverlay.style.zIndex = "1001";
+        touchScreenOverlay.style.zIndex = "3001";
         touchScreenOverlay.style.width = "100px";
         touchScreenOverlay.style.height = "100px";
         touchScreenOverlay.style.display = "none";
