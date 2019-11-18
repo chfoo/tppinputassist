@@ -1,8 +1,8 @@
 # TPP Touchscreen Input Assist
 
-User script for helping a player create and send inputs into a Twitch Plays channel text chat box. It provides a touchscreen coordinate tap overlay for precise touchscreen inputs.
+User script for helping a player create and send inputs into a Twitch Plays channel text chat box. It provides a touchscreen coordinate tap overlay for precise touchscreen inputs. It is not tied to any specific game or channel.
 
-This script does not support automation (boting). Check the broadcaster's chat rules before using this script.
+This script does not support automation (botting). Check the broadcaster's chat rules before using this script.
 
 ## Usage
 
@@ -58,6 +58,12 @@ Table of button mappings in standard mapping:
 
 ## Compiling
 
-(This instruction is for users who wish to compare the precompiled script with the source code.)
+(This instruction is for users who wish to compare the precompiled script with the source code. You don't need to compile it yourself just to use the script.)
 
 To compile the script on Linux, install Haxe 4.0. Then run the makefile with `make` and the JavaScript output will be in the same directory.
+
+## FAQ
+
+**Q. Why doesn't the channel use Twitch extensions?**
+
+A. Using Twitch extensions is certainly possible and a carefully designed extension will work well in a Twitch Plays. However in the case of Twitch Plays Pokemon, games are carefully picked to avoid requiring precise touchscreen inputs especially for those on mobile devices. Aliases mapped to specific common points on the touchscreen can be used as inputs too. As well, Twitch extensions only provide broadcasters a masked ID for each user.
