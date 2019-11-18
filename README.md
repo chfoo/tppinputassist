@@ -29,7 +29,7 @@ To use a gamepad, you will need a modern web browser and a gamepad that supports
 Table of button mappings in standard mapping:
 
 | Button/Axis ID | Generic | Xbox | PS | Switch | TPP |
-|----------------|------|---------|------|----|-----|--------|-----|
+|----------------|---------|------|----|--------|-----|
 | button[0] | Button 1 | A | Cross | A | a |
 | button[1] | Button 2 | B | Circle | B | b |
 | button[2] | Button 3 | X | Square | X  | x |
