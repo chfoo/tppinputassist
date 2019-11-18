@@ -56,6 +56,10 @@ Table of button mappings in standard mapping:
 | - axis[3] | Right-stick Up | " | " | " | cup |
 | + axis[3] | Right-stick Down | " | " | " | cdown |
 
+To send buttons as text chat inputs, press the button or tilt a thumb stick on the gamepad and release it. You can press up to 3 inputs (chording). Make sure that you release all the buttons at the same time and the script will combine the buttons using "+" such as "b+down".
+
+If you press more than 3 and release at the same time, the script will ignore it. This is useful if you begin to press a button by accident.
+
 ## Compiling
 
 (This instruction is for users who wish to compare the precompiled script with the source code. You don't need to compile it yourself just to use the script.)
