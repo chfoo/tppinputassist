@@ -38,10 +38,10 @@ Table of button mappings in standard mapping:
 | button[5] | Shoulder Right | RB | R1 | R | r |
 | button[6] | Shoulder Left 2 | LT | L2 | ZL | l2/zl |
 | button[7] | Shoulder Right 2 | RT | R2 | ZR | r2/zr |
-| button[8] | Back | View | Share | - | select |
-| button[9] | Forward/Home | Menu | Options | + | start |
-| button[10] | Left-stick Press | " | L3 | " | l3 |
-| button[11] | Right-stick press | " | R3 | " | r3 |
+| button[8] | Back | View | Share | - | select/select |
+| button[9] | Forward/Home | Menu | Options | + | start/plus |
+| button[10] | Left-stick Press | " | L3 | " | l3/lstick |
+| button[11] | Right-stick press | " | R3 | " | r3/rstick |
 | button[12] | D-Pad Up | " | " | " | dup |
 | button[13] | D-Pad Down | " | " | " | ddown |
 | button[14] | D-Pad Left | " | " | " | dleft |
@@ -51,10 +51,12 @@ Table of button mappings in standard mapping:
 | + axis[0] | Left-stick Right | " | " | " | right/e |
 | - axis[1] | Left-stick Up | " | " | " | up/n |
 | + axis[1] | Left-stick Down | " | " | " | down/s |
-| - axis[2] | Right-stick Left | " | " | " | cleft |
-| + axis[2] | Right-stick Right | " | " | " | cright |
-| - axis[3] | Right-stick Up | " | " | " | cup |
-| + axis[3] | Right-stick Down | " | " | " | cdown |
+| - axis[2] | Right-stick Left | " | " | " | cleft/rleft |
+| + axis[2] | Right-stick Right | " | " | " | cright/rright |
+| - axis[3] | Right-stick Up | " | " | " | cup/rup |
+| + axis[3] | Right-stick Down | " | " | " | cdown/rdown |
+
+Be sure to configure the correct input text.
 
 To send buttons as text chat inputs, press the button or tilt a thumb stick on the gamepad and release it. You can press up to 3 inputs (chording). Make sure that you release all the buttons at the same time and the script will combine the buttons using "+" such as "b+down".
 
