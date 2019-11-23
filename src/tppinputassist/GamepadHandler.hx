@@ -6,7 +6,7 @@ import js.html.Gamepad;
 import js.Browser;
 
 class GamepadHandler {
-    static inline final STICK_PRESS_THRESHOLD = 0.1;
+    static inline final STICK_PRESS_THRESHOLD = 0.2;
     static inline final CHORD_TIME_THRESHOLD = 200.0; // milliseconds
     final gamepadIndexes:Array<Int>;
     final pressStates:Array<GamepadPressState>;
