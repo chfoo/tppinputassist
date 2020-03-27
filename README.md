@@ -14,6 +14,8 @@ Once enabled in Greasemoney/Tampermonkey, reload the video page. Wait at least 1
 
 When you enable the touchscreen feature, a box will appear on the video. Drag the box over the touchscreen portion of the video using the top handlebar. Then use the bottom handlebar to resize it. When you click within the box, the coordinates will appear in the chat text box.
 
+When you hold down the mouse button and move the mouse within the touchscreen box (dragging), it will input the dragging coordinate commands (for example, "10,10>20,20"). Any drags that have a threshold distance of 8 or more touchscreen pixels will be considered drag commands. What this means is that if you are clicking and accidentally move the mouse slightly, it will still be considered a click.
+
 The DS uses a 256×192 pixel touchscreen, the 3DS uses 320×240 touchscreen, and the Switch uses a 1280x720 touchscreen. Be sure to adjust the size setting if needed.
 
 The overlay might not work correctly on all views or pages using the new Twitch layout. Particularly, fullscreen may hide the overlay and whispers boxes may be covered.
@@ -72,4 +74,6 @@ To compile the script on Linux, install Haxe 4.0. Then run the makefile with `ma
 
 **Q. Why doesn't the channel use Twitch extensions?**
 
-A. Using Twitch extensions is certainly possible and a carefully designed extension will work well in a Twitch Plays. However in the case of Twitch Plays Pokemon, games are carefully picked to avoid requiring precise touchscreen inputs especially for those on mobile devices. Aliases mapped to specific common points on the touchscreen can be used as inputs too. As well, Twitch extensions only provide broadcasters a masked ID for each user.
+A. Using Twitch extensions is certainly possible and a carefully designed extension will work well in a Twitch Plays. However in the case of Twitch Plays Pokemon, games are carefully picked to avoid requiring precise touchscreen inputs especially for those on mobile devices. Aliases mapped to specific common points on the touchscreen can be used as inputs too.
+
+A note about user IDs: Twitch extensions only provide broadcasters a masked ID for each user, unless extensions request identity linking. Requesting identity linking will cause Twitch's UI to show a nag notification over the video.

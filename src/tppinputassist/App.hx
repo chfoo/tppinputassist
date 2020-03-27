@@ -1,5 +1,6 @@
 package tppinputassist;
 
+import js.html.CanvasElement;
 import haxe.DynamicAccess;
 import haxe.Json;
 import js.Browser;
@@ -26,9 +27,11 @@ class ElementNotFoundError {
 
 
 class App {
+    final dragThreshold = 8;
     var running = false;
     var textarea:TextAreaElement;
     var touchScreenOverlay:DivElement;
+    var clickReceiver:CanvasElement;
     var settingsPanel:DivElement;
     var autoSendCheckbox:InputElement;
     var avoidBanCheckbox:InputElement;
@@ -37,11 +40,15 @@ class App {
     var widthInput:InputElement;
     var heightInput:InputElement;
     var formatElement:InputElement;
+    var dragFormatElement:InputElement;
     var touchscreenWidth = 320;
     var touchscreenHeight = 240;
     var touchscreenFormat = "{x},{y}";
+    var touchscreenDragFormat = "{x1},{y1}>{x2},{y2}";
     var lastSendTime:Date;
     var lastSendText = "";
+    var mouseDownX:Null<Float>;
+    var mouseDownY:Null<Float>;
     final gamepadButtonFormatInputs:Array<InputElement>;
     final gamepadHandler:GamepadHandler;
 
@@ -240,6 +247,8 @@ class App {
             <label>Height: <input id=tpp_assist_height_input type=number min=0 value=240 style='width: 5em;'></label>
             <br>
             <label>Format: <input id=tpp_assist_format_input type=text value='{x},{y}' style='width: 5em;'></label>
+            <br>
+            <label>Drag: <input id=tpp_assist_drag_format_input type=text value='{x1},{y1}>{x2},{y2}' style='width: 10em;'></label>
             </fieldset>");
 
         panelHTMLBuf.add("
@@ -320,14 +329,20 @@ class App {
         heightInput = cast(Browser.document.getElementById("tpp_assist_height_input"), InputElement);
 
         widthInput.onchange = heightInput.onchange = function(event:Event) {
-            touchscreenWidth = Std.parseInt(widthInput.value);
-            touchscreenHeight = Std.parseInt(heightInput.value);
+            clickReceiver.width = touchscreenWidth = Std.parseInt(widthInput.value);
+            clickReceiver.height = touchscreenHeight = Std.parseInt(heightInput.value);
             saveSettings();
         }
 
         formatElement = cast(Browser.document.getElementById("tpp_assist_format_input"), InputElement);
         formatElement.onchange = function(event:Event) {
             touchscreenFormat = formatElement.value;
+            saveSettings();
+        }
+
+        dragFormatElement = cast(Browser.document.getElementById("tpp_assist_drag_format_input"), InputElement);
+        dragFormatElement.onchange = function(event:Event) {
+            touchscreenDragFormat = dragFormatElement.value;
             saveSettings();
         }
     }
@@ -366,20 +381,25 @@ class App {
         coordDisplay.style.position = "absolute";
         coordDisplay.style.bottom = "0px";
         coordDisplay.style.left = "0px";
-        coordDisplay.style.opacity = "0.75";
+        coordDisplay.style.opacity = "0.8";
         coordDisplay.style.color = "white";
         coordDisplay.style.fontSize = "0.75em";
         coordDisplay.style.width = "100%";
         coordDisplay.textContent = "Drag & Size Me";
-        coordDisplay.style.textShadow = "0px 0px 3px black";
+        coordDisplay.style.textShadow = "0px 0px 4px black";
 
-        var clickReceiver = Browser.document.createDivElement();
+        clickReceiver = Browser.document.createCanvasElement();
         touchScreenOverlay.appendChild(clickReceiver);
         clickReceiver.style.position = "absolute";
         clickReceiver.style.top = "0px";
         clickReceiver.style.width = "100%";
         clickReceiver.style.height = "100%";
         clickReceiver.style.cursor = "crosshair";
+        clickReceiver.style.userSelect = "none";
+        clickReceiver.style.imageRendering = "pixelated";
+        clickReceiver.width = touchscreenWidth;
+        clickReceiver.height = touchscreenHeight;
+        final canvasContext = clickReceiver.getContext2d();
 
         var dragHandle = Browser.document.createDivElement();
         touchScreenOverlay.appendChild(dragHandle);
@@ -395,23 +415,74 @@ class App {
 
         Browser.document.body.appendChild(touchScreenOverlay);
 
-        new JQuery(clickReceiver).click(function (event:js.jquery.Event) {
-            var coord = calcCoordinate(event);
-            var text = touchscreenFormat
-                .replace("{x}", Std.string(coord.x))
-                .replace("{y}", Std.string(coord.y));
+        function clearCanvas() {
+            canvasContext.clearRect(0, 0, touchscreenWidth, touchscreenHeight);
+        }
+        final strokePattern = makeStrokeDragPattern();
+        final jqClickReceiver = new JQuery(clickReceiver);
 
-            coordDisplay.textContent = '${coord.x},${coord.y} *';
-            sendText(text);
+        jqClickReceiver.mousedown((event:js.jquery.Event) -> {
+            final coord = calcCoordinate(event);
+            mouseDownX = coord.x;
+            mouseDownY = coord.y;
         });
 
-        new JQuery(clickReceiver).mousemove(function (event:js.jquery.Event) {
+        jqClickReceiver.mouseup((event:js.jquery.Event) -> {
+            if (mouseDownX == null || mouseDownY == null) {
+                return;
+            }
+
+            final coord = calcCoordinate(event);
+            final distance = Math.sqrt(Math.pow(coord.x - mouseDownX, 2) + Math.pow(coord.y - mouseDownY, 2));
+
+            if (distance >= dragThreshold) {
+                final text = touchscreenDragFormat
+                    .replace("{x1}", Std.string(mouseDownX))
+                    .replace("{y1}", Std.string(mouseDownY))
+                    .replace("{x2}", Std.string(coord.x))
+                    .replace("{y2}", Std.string(coord.y));
+
+                coordDisplay.textContent = '${mouseDownX},${mouseDownY}→${coord.x},${coord.y} *';
+                sendText(text);
+            } else {
+                final text = touchscreenFormat
+                    .replace("{x}", Std.string(coord.x))
+                    .replace("{y}", Std.string(coord.y));
+
+                coordDisplay.textContent = '${coord.x},${coord.y} *';
+                sendText(text);
+            }
+
+            cancelDragStart();
+            clearCanvas();
+        });
+
+        jqClickReceiver.mousemove(function (event:js.jquery.Event) {
             var coord = calcCoordinate(event);
             coordDisplay.textContent = '${coord.x},${coord.y}';
+
+            canvasContext.clearRect(0, 0, touchscreenWidth, touchscreenHeight);
+
+            if (mouseDownX != null && mouseDownY != null) {
+                final distance = Math.sqrt(Math.pow(coord.x - mouseDownX, 2) + Math.pow(coord.y - mouseDownY, 2));
+
+                if (distance >= dragThreshold) {
+                    coordDisplay.textContent = '$mouseDownX,$mouseDownY→' + coordDisplay.textContent;
+                }
+
+                canvasContext.imageSmoothingEnabled = false;
+                canvasContext.strokeStyle = strokePattern;
+                canvasContext.beginPath();
+                canvasContext.moveTo(mouseDownX + 0.5, mouseDownY + 0.5);
+                canvasContext.lineTo(coord.x + 0.5, coord.y + 0.5);
+                canvasContext.stroke();
+            }
         });
 
-        new JQuery(clickReceiver).mouseleave(function (event:js.jquery.Event) {
+        jqClickReceiver.mouseleave(function (event:js.jquery.Event) {
             coordDisplay.textContent = "";
+            cancelDragStart();
+            clearCanvas();
         });
 
         var jq = new JQuery(touchScreenOverlay);
@@ -468,6 +539,11 @@ class App {
         return {x: x, y: y};
     }
 
+    function cancelDragStart() {
+        mouseDownX = null;
+        mouseDownY = null;
+    }
+
     function showTouchscreenOverlay(visible:Bool) {
         var offset = new JQuery("#player").offset();
         var top = "50px";
@@ -517,9 +593,13 @@ class App {
         var doc:DynamicAccess<Any> = Json.parse(docString);
 
         if (doc.exists("width") && doc.exists("height") && doc.exists("format")) {
-            widthInput.value = Std.string(touchscreenWidth = doc.get("width"));
-            heightInput.value = Std.string(touchscreenHeight = doc.get("height"));
+            widthInput.value = Std.string(clickReceiver.width = touchscreenWidth = doc.get("width"));
+            heightInput.value = Std.string(clickReceiver.height = touchscreenHeight = doc.get("height"));
             formatElement.value = touchscreenFormat = doc.get("format");
+        }
+
+        if (doc.exists("dragFormat")) {
+            dragFormatElement.value = touchscreenDragFormat = doc.get("dragFormat");
         }
 
         if (doc.exists("overlayWidth") && doc.exists("overlayHeight")) {
@@ -554,6 +634,7 @@ class App {
             width: widthInput.value,
             height: heightInput.value,
             format: formatElement.value,
+            dragFormat: dragFormatElement.value,
             overlayWidth: touchScreenOverlay.style.width,
             overlayHeight: touchScreenOverlay.style.height,
             overlayX: touchScreenOverlay.style.left,
@@ -572,5 +653,22 @@ class App {
             'tppinputassist-${Browser.window.location.pathname}-settings',
             Json.stringify(doc)
         );
+    }
+
+    function makeStrokeDragPattern() {
+        final canvas = Browser.document.createCanvasElement();
+        final context = canvas.getContext2d();
+        canvas.width = 2;
+        canvas.height = 2;
+        context.imageSmoothingEnabled = false;
+        context.fillStyle = "rgba(255, 255, 255, 0.8)";
+        context.fillRect(0, 0, 1, 1);
+        context.fillRect(1, 1, 1, 1);
+        context.fillStyle = "rgba(0, 0, 0, 0.8)";
+        context.fillRect(1, 0, 1, 1);
+        context.fillRect(0, 1, 1, 1);
+
+        final pattern = context.createPattern(canvas, "repeat");
+        return pattern;
     }
 }
