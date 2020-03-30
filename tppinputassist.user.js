@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TPP Touchscreen Input Assist
 // @namespace    chfoo/tppinputassist
-// @version      1.10.0
+// @version      1.11.0
 // @homepage     https://github.com/chfoo/tppinputassist
 // @updateURL    https://raw.githubusercontent.com/chfoo/tppinputassist/master/tppinputassist.user.js
 // @description  Touchscreen coordinate tap overlay for inputting into Twitch chat
@@ -361,7 +361,7 @@ var tppinputassist_App = function() {
 tppinputassist_App.__name__ = true;
 tppinputassist_App.prototype = {
 	run: function() {
-		haxe_Log.trace("TPPInputAssist script run",{ fileName : "src/tppinputassist/App.hx", lineNumber : 144, className : "tppinputassist.App", methodName : "run", customParams : [window.location]});
+		haxe_Log.trace("TPPInputAssist script run",{ fileName : "src/tppinputassist/App.hx", lineNumber : 148, className : "tppinputassist.App", methodName : "run", customParams : [window.location]});
 		this.attachLoadHook();
 	}
 	,detectButtonContainer: function() {
@@ -375,16 +375,16 @@ tppinputassist_App.prototype = {
 				return;
 			}
 			_gthis.running = true;
-			haxe_Log.trace("Page loaded, trying install script",{ fileName : "src/tppinputassist/App.hx", lineNumber : 162, className : "tppinputassist.App", methodName : "attachLoadHook"});
+			haxe_Log.trace("Page loaded, trying install script",{ fileName : "src/tppinputassist/App.hx", lineNumber : 166, className : "tppinputassist.App", methodName : "attachLoadHook"});
 			window.setTimeout($bind(_gthis,_gthis.jamJQueryIn),2000);
 		});
 	}
 	,jamJQueryIn: function() {
 		if(!this.detectButtonContainer()) {
-			haxe_Log.trace("Button container not found, exiting.",{ fileName : "src/tppinputassist/App.hx", lineNumber : 170, className : "tppinputassist.App", methodName : "jamJQueryIn"});
+			haxe_Log.trace("Button container not found, exiting.",{ fileName : "src/tppinputassist/App.hx", lineNumber : 174, className : "tppinputassist.App", methodName : "jamJQueryIn"});
 			return;
 		}
-		haxe_Log.trace("Installing settings button",{ fileName : "src/tppinputassist/App.hx", lineNumber : 174, className : "tppinputassist.App", methodName : "jamJQueryIn"});
+		haxe_Log.trace("Installing settings button",{ fileName : "src/tppinputassist/App.hx", lineNumber : 178, className : "tppinputassist.App", methodName : "jamJQueryIn"});
 		this.installSettingsButton();
 		var style = window.document.createElement("style");
 		style.textContent = tppinputassist_CSS.getCSS();
@@ -415,6 +415,10 @@ tppinputassist_App.prototype = {
 		this.textarea = js_Boot.__cast(element , HTMLTextAreaElement);
 		this.installSettingsPanel();
 		this.installTouchscreenOverlay();
+		this.installQuickToggleOverlay();
+		this.setUpTouchscreenElements();
+		this.setUpQuickOverlayToggleElements();
+		this.setUpGamepadElements();
 		this.loadSettings();
 		this.gamepadHandler.onInput = $bind(this,this.gamepadInputCallback);
 	}
@@ -429,7 +433,7 @@ tppinputassist_App.prototype = {
 		this.settingsPanel.classList.add("tpp-input-assist");
 		this.settingsPanel.style.display = "none";
 		var panelHTMLBuf_b = "";
-		panelHTMLBuf_b += "\n            <fieldset style='border: 1px solid gray; padding: 0.25em'>\n            <legend>Touchscreen</legend>\n            <label for=tpp_assist_enable_checkbox\n                style='margin: inherit; color: inherit; display: inline-block;'\n            >\n                <input type=checkbox id=tpp_assist_enable_checkbox>\n                Enable tap overlay\n            </label>\n\n            <br>\n            <label>Width: <input id=tpp_assist_width_input type=number min=0 value=320 style='width: 5em;'></label>\n            <br>\n            <label>Height: <input id=tpp_assist_height_input type=number min=0 value=240 style='width: 5em;'></label>\n            <br>\n            <label>Format: <input id=tpp_assist_format_input type=text value='{x},{y}' style='width: 5em;'></label>\n            <br>\n            <label>Drag: <input id=tpp_assist_drag_format_input type=text value='{x1},{y1}>{x2},{y2}' style='width: 10em;'></label>\n            </fieldset>";
+		panelHTMLBuf_b += "\n            <fieldset style='border: 1px solid gray; padding: 0.25em'>\n            <legend>Touchscreen</legend>\n            <label for=tpp_assist_enable_checkbox\n                style='margin: inherit; color: inherit; display: inline-block;'\n            >\n                <input type=checkbox id=tpp_assist_enable_checkbox>\n                Enable tap overlay\n            </label>\n\n            <br>\n            <label>Width: <input id=tpp_assist_width_input type=number min=0 value=320 style='width: 5em;'></label>\n            <br>\n            <label>Height: <input id=tpp_assist_height_input type=number min=0 value=240 style='width: 5em;'></label>\n            <br>\n            <label>Format: <input id=tpp_assist_format_input type=text value='{x},{y}' style='width: 5em;'></label>\n            <br>\n            <label>Drag: <input id=tpp_assist_drag_format_input type=text value='{x1},{y1}>{x2},{y2}' style='width: 10em;'></label>\n            <br>\n            <label for=tpp_assist_quick_overlay_toggle_checkbox\n                style='margin: inherit; color: inherit; display: inline-block;'\n            >\n                <input type=checkbox id=tpp_assist_quick_overlay_toggle_checkbox>\n                Show quick overlay toggle button\n            </label>\n            </fieldset>";
 		panelHTMLBuf_b += "\n            <fieldset style='border: 1px solid gray; padding: 0.25em'>\n            <legend>Gamepad</legend>\n            <label for=tpp_assist_gamepad_enable_checkbox\n                style='margin: inherit; color: inherit; display: inline-block;'>\n                <input type=checkbox id=tpp_assist_gamepad_enable_checkbox>\n                Enable gamepad input\n            </label>\n            <details>\n                <summary>Button-input mappings</summary>\n        ";
 		var _g = 0;
 		while(_g < 25) {
@@ -455,32 +459,46 @@ tppinputassist_App.prototype = {
 		element = window.document.querySelector("div.chat-input__buttons-container > div > div > button[data-a-target='chat-send-button']");
 		this.throwIfNull(element);
 		this.sendButton = js_Boot.__cast(element , HTMLButtonElement);
-		this.setUpTouchscreenElements();
-		this.setUpGamepadElements();
 	}
 	,setUpTouchscreenElements: function() {
 		var _gthis = this;
-		var enableCheckbox = js_Boot.__cast(window.document.getElementById("tpp_assist_enable_checkbox") , HTMLInputElement);
-		enableCheckbox.onclick = function(event) {
-			_gthis.showTouchscreenOverlay(enableCheckbox.checked);
+		this.enableCheckbox = js_Boot.__cast(window.document.getElementById("tpp_assist_enable_checkbox") , HTMLInputElement);
+		this.enableCheckbox.onclick = function(event) {
+			_gthis.showTouchscreenOverlay(_gthis.enableCheckbox.checked);
 			_gthis.loadSettings();
+		};
+		this.quickOverlayToggleCheckbox = js_Boot.__cast(window.document.getElementById("tpp_assist_quick_overlay_toggle_checkbox") , HTMLInputElement);
+		this.quickOverlayToggleCheckbox.onclick = function(event1) {
+			if(_gthis.quickOverlayToggleCheckbox.checked) {
+				_gthis.quickOverlayToggleElement.style.display = "inline-block";
+			} else {
+				_gthis.quickOverlayToggleElement.style.display = "none";
+			}
+			_gthis.saveSettings();
 		};
 		this.widthInput = js_Boot.__cast(window.document.getElementById("tpp_assist_width_input") , HTMLInputElement);
 		this.heightInput = js_Boot.__cast(window.document.getElementById("tpp_assist_height_input") , HTMLInputElement);
-		this.widthInput.onchange = this.heightInput.onchange = function(event1) {
+		this.widthInput.onchange = this.heightInput.onchange = function(event2) {
 			_gthis.clickReceiver.width = _gthis.touchscreenWidth = Std.parseInt(_gthis.widthInput.value);
 			_gthis.clickReceiver.height = _gthis.touchscreenHeight = Std.parseInt(_gthis.heightInput.value);
 			_gthis.saveSettings();
 		};
 		this.formatElement = js_Boot.__cast(window.document.getElementById("tpp_assist_format_input") , HTMLInputElement);
-		this.formatElement.onchange = function(event2) {
+		this.formatElement.onchange = function(event3) {
 			_gthis.touchscreenFormat = _gthis.formatElement.value;
 			_gthis.saveSettings();
 		};
 		this.dragFormatElement = js_Boot.__cast(window.document.getElementById("tpp_assist_drag_format_input") , HTMLInputElement);
-		this.dragFormatElement.onchange = function(event3) {
+		this.dragFormatElement.onchange = function(event4) {
 			_gthis.touchscreenDragFormat = _gthis.dragFormatElement.value;
 			_gthis.saveSettings();
+		};
+	}
+	,setUpQuickOverlayToggleElements: function() {
+		var _gthis = this;
+		this.quickOverlayToggleButton.onclick = function() {
+			_gthis.enableCheckbox.click();
+			return;
 		};
 	}
 	,setUpGamepadElements: function() {
@@ -543,8 +561,8 @@ tppinputassist_App.prototype = {
 		this.touchScreenOverlay.appendChild(dragHandle);
 		dragHandle.style.border = "0.1em outset grey";
 		dragHandle.style.position = "relative";
-		dragHandle.style.top = "-0.5em";
-		dragHandle.style.left = "-0.5em";
+		dragHandle.style.top = "-1.2em";
+		dragHandle.style.left = "0em";
 		dragHandle.style.background = "grey";
 		dragHandle.style.height = "1em";
 		dragHandle.style.cursor = "move";
@@ -605,9 +623,42 @@ tppinputassist_App.prototype = {
 		var jq = $(this.touchScreenOverlay);
 		jq.draggable({ handle : dragHandle, containment : "document", stop : function() {
 			_gthis.saveSettings();
-		}}).resizable({ stop : function(event4,ui) {
+		}, drag : function(event4,ui) {
+			return ui.position.top = Math.max(10,ui.position.top);
+		}}).resizable({ stop : function(event5,ui1) {
 			_gthis.saveSettings();
 		}});
+	}
+	,installQuickToggleOverlay: function() {
+		var _gthis = this;
+		this.quickOverlayToggleElement = window.document.createElement("div");
+		this.quickOverlayToggleElement.classList.add("tpp-input-assist");
+		this.quickOverlayToggleElement.style.border = "0.1em solid grey";
+		this.quickOverlayToggleElement.style.zIndex = "3001";
+		this.quickOverlayToggleElement.style.display = "none";
+		this.quickOverlayToggleElement.style.position = "absolute";
+		this.quickOverlayToggleElement.style.right = "0em";
+		this.quickOverlayToggleElement.style.top = "0em";
+		this.quickOverlayToggleElement.style.width = "5em";
+		var handle = window.document.createElement("div");
+		handle.style.border = "0.1em outset grey";
+		handle.style.background = "grey";
+		handle.style.height = "1em";
+		handle.style.width = "1em";
+		handle.style.cursor = "move";
+		handle.style.opacity = "0.5";
+		handle.style.color = "white";
+		handle.style.display = "inline-block";
+		this.quickOverlayToggleElement.appendChild(handle);
+		this.quickOverlayToggleButton = window.document.createElement("button");
+		this.quickOverlayToggleElement.appendChild(this.quickOverlayToggleButton);
+		this.quickOverlayToggleButton.textContent = "📺👆";
+		var jq = $(this.quickOverlayToggleElement);
+		jq.draggable({ handle : handle, containment : "document", stop : function() {
+			_gthis.saveSettings();
+			return;
+		}});
+		window.document.body.appendChild(this.quickOverlayToggleElement);
 	}
 	,sendText: function(text) {
 		if(text == this.lastSendText) {
@@ -698,6 +749,16 @@ tppinputassist_App.prototype = {
 			this.touchScreenOverlay.style.left = doc["overlayX"];
 			this.touchScreenOverlay.style.top = doc["overlayY"];
 		}
+		if(Object.prototype.hasOwnProperty.call(doc,"showQuickOverlayToggle")) {
+			this.quickOverlayToggleCheckbox.checked = doc["showQuickOverlayToggle"];
+			if(this.quickOverlayToggleCheckbox.checked) {
+				this.quickOverlayToggleElement.style.display = "inline-block";
+			}
+		}
+		if(Object.prototype.hasOwnProperty.call(doc,"showQuickOverlayToggleX") && Object.prototype.hasOwnProperty.call(doc,"showQuickOverlayToggleY")) {
+			this.quickOverlayToggleElement.style.left = doc["showQuickOverlayToggleX"];
+			this.quickOverlayToggleElement.style.top = doc["showQuickOverlayToggleY"];
+		}
 		if(Object.prototype.hasOwnProperty.call(doc,"autoSend")) {
 			this.autoSendCheckbox.checked = doc["autoSend"];
 		}
@@ -715,7 +776,7 @@ tppinputassist_App.prototype = {
 		}
 	}
 	,saveSettings: function() {
-		var doc = { width : this.widthInput.value, height : this.heightInput.value, format : this.formatElement.value, dragFormat : this.dragFormatElement.value, overlayWidth : this.touchScreenOverlay.style.width, overlayHeight : this.touchScreenOverlay.style.height, overlayX : this.touchScreenOverlay.style.left, overlayY : this.touchScreenOverlay.style.top, autoSend : this.autoSendCheckbox.checked, avoidBan : this.avoidBanCheckbox.checked};
+		var doc = { width : this.widthInput.value, height : this.heightInput.value, format : this.formatElement.value, dragFormat : this.dragFormatElement.value, overlayWidth : this.touchScreenOverlay.style.width, overlayHeight : this.touchScreenOverlay.style.height, overlayX : this.touchScreenOverlay.style.left, overlayY : this.touchScreenOverlay.style.top, showQuickOverlayToggle : this.quickOverlayToggleCheckbox.checked, showQuickOverlayToggleX : this.quickOverlayToggleElement.style.left, showQuickOverlayToggleY : this.quickOverlayToggleElement.style.top, autoSend : this.autoSendCheckbox.checked, avoidBan : this.avoidBanCheckbox.checked};
 		var _g = 0;
 		var _g1 = tppinputassist_App.gamepadButtonIds.length;
 		while(_g < _g1) {
