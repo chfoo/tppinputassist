@@ -18,6 +18,8 @@ When you hold down the mouse button and move the mouse within the touchscreen bo
 
 The DS uses a 256×192 pixel touchscreen, the 3DS uses 320×240 touchscreen, and the Switch uses a 1280x720 touchscreen. Be sure to adjust the size setting if needed.
 
+When you enable "Show quick overlay toggle button", it will add a floating button labeled "📺👆" to the top-right of the web page. You can click on the the button to enable and disable the tap overlay without needing to open the settings panel. You can drag the handle box to move the button.
+
 The overlay might not work correctly on all views or pages using the new Twitch layout. Particularly, fullscreen may hide the overlay and whispers boxes may be covered.
 
 If you notice any visual or functional anomalies affecting extensions (such as BTTV or FFZ), please file a bug report and temporary disable/enable extensions as needed.

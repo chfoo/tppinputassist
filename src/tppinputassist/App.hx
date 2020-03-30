@@ -33,6 +33,8 @@ class App {
     var touchScreenOverlay:DivElement;
     var clickReceiver:CanvasElement;
     var settingsPanel:DivElement;
+    var enableCheckbox:InputElement;
+    var quickOverlayToggleCheckbox:InputElement;
     var autoSendCheckbox:InputElement;
     var avoidBanCheckbox:InputElement;
     var sendButton:ButtonElement;
@@ -41,6 +43,8 @@ class App {
     var heightInput:InputElement;
     var formatElement:InputElement;
     var dragFormatElement:InputElement;
+    var quickOverlayToggleElement:DivElement;
+    var quickOverlayToggleButton:ButtonElement;
     var touchscreenWidth = 320;
     var touchscreenHeight = 240;
     var touchscreenFormat = "{x},{y}";
@@ -213,6 +217,12 @@ class App {
 
         installSettingsPanel();
         installTouchscreenOverlay();
+        installQuickToggleOverlay();
+
+        setUpTouchscreenElements();
+        setUpQuickOverlayToggleElements();
+        setUpGamepadElements();
+
         loadSettings();
 
         gamepadHandler.onInput = gamepadInputCallback;
@@ -249,6 +259,13 @@ class App {
             <label>Format: <input id=tpp_assist_format_input type=text value='{x},{y}' style='width: 5em;'></label>
             <br>
             <label>Drag: <input id=tpp_assist_drag_format_input type=text value='{x1},{y1}>{x2},{y2}' style='width: 10em;'></label>
+            <br>
+            <label for=tpp_assist_quick_overlay_toggle_checkbox
+                style='margin: inherit; color: inherit; display: inline-block;'
+            >
+                <input type=checkbox id=tpp_assist_quick_overlay_toggle_checkbox>
+                Show quick overlay toggle button
+            </label>
             </fieldset>");
 
         panelHTMLBuf.add("
@@ -313,16 +330,23 @@ class App {
 
         throwIfNull(element);
         sendButton = cast(element, ButtonElement);
-
-        setUpTouchscreenElements();
-        setUpGamepadElements();
     }
 
     function setUpTouchscreenElements() {
-        var enableCheckbox = cast(Browser.document.getElementById("tpp_assist_enable_checkbox"), InputElement);
+        enableCheckbox = cast(Browser.document.getElementById("tpp_assist_enable_checkbox"), InputElement);
         enableCheckbox.onclick = function (event:Event) {
             showTouchscreenOverlay(enableCheckbox.checked);
             loadSettings();
+        }
+
+        quickOverlayToggleCheckbox = cast(Browser.document.getElementById("tpp_assist_quick_overlay_toggle_checkbox"), InputElement);
+        quickOverlayToggleCheckbox.onclick = function (event:Event) {
+            if (quickOverlayToggleCheckbox.checked) {
+                quickOverlayToggleElement.style.display = "inline-block";
+            } else {
+                quickOverlayToggleElement.style.display = "none";
+            }
+            saveSettings();
         }
 
         widthInput = cast(Browser.document.getElementById("tpp_assist_width_input"), InputElement);
@@ -345,6 +369,10 @@ class App {
             touchscreenDragFormat = dragFormatElement.value;
             saveSettings();
         }
+    }
+
+    function setUpQuickOverlayToggleElements() {
+        quickOverlayToggleButton.onclick = () -> enableCheckbox.click();
     }
 
     function setUpGamepadElements() {
@@ -405,8 +433,8 @@ class App {
         touchScreenOverlay.appendChild(dragHandle);
         dragHandle.style.border = "0.1em outset grey";
         dragHandle.style.position = "relative";
-        dragHandle.style.top = "-0.5em";
-        dragHandle.style.left = "-0.5em";
+        dragHandle.style.top = "-1.2em";
+        dragHandle.style.left = "0em";
         dragHandle.style.background = "grey";
         dragHandle.style.height = "1em";
         dragHandle.style.cursor = "move";
@@ -489,13 +517,53 @@ class App {
         untyped jq.draggable({
             handle: dragHandle,
             containment: "document",
-            stop: function () { saveSettings(); }
+            stop: function () { saveSettings(); },
+            drag:
+                (event, ui) -> {
+                    ui.position.top = Math.max(10, ui.position.top);
+                }
             })
             .resizable({
                 stop: function (event: Event, ui: Dynamic) {
                     saveSettings();
             }
         });
+    }
+
+    function installQuickToggleOverlay() {
+        quickOverlayToggleElement = Browser.document.createDivElement();
+        quickOverlayToggleElement.classList.add("tpp-input-assist");
+        quickOverlayToggleElement.style.border = "0.1em solid grey";
+        quickOverlayToggleElement.style.zIndex = "3001";
+        quickOverlayToggleElement.style.display = "none";
+        quickOverlayToggleElement.style.position = "absolute";
+        quickOverlayToggleElement.style.right = "0em";
+        quickOverlayToggleElement.style.top = "0em";
+        quickOverlayToggleElement.style.width = "5em";
+
+        final handle = Browser.document.createDivElement();
+        handle.style.border = "0.1em outset grey";
+        handle.style.background = "grey";
+        handle.style.height = "1em";
+        handle.style.width = "1em";
+        handle.style.cursor = "move";
+        handle.style.opacity = "0.5";
+        handle.style.color = "white";
+        handle.style.display = "inline-block";
+        quickOverlayToggleElement.appendChild(handle);
+
+        quickOverlayToggleButton = Browser.document.createButtonElement();
+        quickOverlayToggleElement.appendChild(quickOverlayToggleButton);
+        quickOverlayToggleButton.textContent = '📺👆';
+
+        var jq = new JQuery(quickOverlayToggleElement);
+        untyped jq.draggable({
+            handle: handle,
+            containment: "document",
+            stop: () -> saveSettings()
+        });
+
+        Browser.document.body.appendChild(quickOverlayToggleElement);
     }
 
     function sendText(text:String) {
@@ -612,6 +680,19 @@ class App {
             touchScreenOverlay.style.top = doc.get("overlayY");
         }
 
+        if (doc.exists("showQuickOverlayToggle")) {
+            quickOverlayToggleCheckbox.checked = doc.get("showQuickOverlayToggle");
+
+            if (quickOverlayToggleCheckbox.checked) {
+                quickOverlayToggleElement.style.display = "inline-block";
+            }
+        }
+
+        if (doc.exists("showQuickOverlayToggleX") && doc.exists("showQuickOverlayToggleY")) {
+            quickOverlayToggleElement.style.left = doc.get("showQuickOverlayToggleX");
+            quickOverlayToggleElement.style.top = doc.get("showQuickOverlayToggleY");
+        }
+
         if (doc.exists("autoSend")) {
             autoSendCheckbox.checked = doc.get("autoSend");
         }
@@ -639,6 +720,9 @@ class App {
             overlayHeight: touchScreenOverlay.style.height,
             overlayX: touchScreenOverlay.style.left,
             overlayY: touchScreenOverlay.style.top,
+            showQuickOverlayToggle: quickOverlayToggleCheckbox.checked,
+            showQuickOverlayToggleX: quickOverlayToggleElement.style.left,
+            showQuickOverlayToggleY: quickOverlayToggleElement.style.top,
             autoSend: autoSendCheckbox.checked,
             avoidBan: avoidBanCheckbox.checked
         };
