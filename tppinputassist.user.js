@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TPP Touchscreen Input Assist
 // @namespace    chfoo/tppinputassist
-// @version      1.11.1
+// @version      1.11.2
 // @homepage     https://github.com/chfoo/tppinputassist
 // @description  Touchscreen coordinate tap overlay for inputting into Twitch chat
 // @author       Christopher Foo
@@ -740,11 +740,11 @@ tppinputassist_App.prototype = {
 		if(Object.prototype.hasOwnProperty.call(doc,"dragFormat")) {
 			this.dragFormatElement.value = this.touchscreenDragFormat = doc["dragFormat"];
 		}
-		if(Object.prototype.hasOwnProperty.call(doc,"overlayWidth") && Object.prototype.hasOwnProperty.call(doc,"overlayHeight")) {
+		if(doc["overlayWidth"] != "" && doc["overlayHeight"] != "") {
 			this.touchScreenOverlay.style.width = doc["overlayWidth"];
 			this.touchScreenOverlay.style.height = doc["overlayHeight"];
 		}
-		if(Object.prototype.hasOwnProperty.call(doc,"overlayX") && Object.prototype.hasOwnProperty.call(doc,"overlayY")) {
+		if(doc["overlayX"] != "" && doc["overlayY"] != "") {
 			this.touchScreenOverlay.style.left = doc["overlayX"];
 			this.touchScreenOverlay.style.top = doc["overlayY"];
 		}
