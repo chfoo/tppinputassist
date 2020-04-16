@@ -670,12 +670,12 @@ class App {
             dragFormatElement.value = touchscreenDragFormat = doc.get("dragFormat");
         }
 
-        if (doc.exists("overlayWidth") && doc.exists("overlayHeight")) {
+        if (doc.get("overlayWidth") != "" && doc.get("overlayHeight") != "") {
             touchScreenOverlay.style.width = doc.get("overlayWidth");
             touchScreenOverlay.style.height = doc.get("overlayHeight");
         }
 
-        if (doc.exists("overlayX") && doc.exists("overlayY")) {
+        if (doc.get("overlayX") != "" && doc.get("overlayY") != "") {
             touchScreenOverlay.style.left = doc.get("overlayX");
             touchScreenOverlay.style.top = doc.get("overlayY");
         }
