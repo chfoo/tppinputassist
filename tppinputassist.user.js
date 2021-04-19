@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TPP Touchscreen Input Assist
 // @namespace    chfoo/tppinputassist
-// @version      1.13.0
+// @version      1.13.1
 // @homepage     https://github.com/chfoo/tppinputassist
 // @description  Touchscreen coordinate tap overlay for inputting into Twitch chat
 // @author       Christopher Foo
@@ -546,7 +546,7 @@ class tppinputassist_App {
 			let defaultValue = tppinputassist_App.gamepadButtonDefaults[index];
 			panelHTMLBuf_b += Std.string("<br>\n                <label>" + label + ":\n                <input id=tpp_assist_gamepad_" + id + "_format type=text value=\"" + defaultValue + "\" style=\"width: 5em;\">\n                </label>");
 		}
-		panelHTMLBuf_b += "\n            </details>\n            </fieldset>\n\n            <fieldset style='border: 1px solid gray; padding: 0.25em'>\n            <legend>AutoSend</legend>\n            <label for=tpp_assist_auto_send_checkbox\n                style='margin: inherit; color: inherit; display: inline-block;'\n            >\n                <input type=checkbox id=tpp_assist_auto_send_checkbox>\n                Automatically Send on click\n            </label>\n            <label for=tpp_assist_avoid_ban_checkbox\n                style='margin: inherit; color: inherit; display: inline-block;'\n            >\n                <input type=checkbox id=tpp_assist_avoid_ban_checkbox checked=checked>\n                Don't autosend if clicked too fast (helps avoid global ban)\n            </label>\n            </fieldset>\n            <fieldset style='border: 1px solid gray; padding: 0.25em'>\n            <legend>Troubleshoot</legend>\n                <button id=tpp_assist_reset_positions_button>Reset draggable box positions</button>\n            </fieldset>\n        ";
+		panelHTMLBuf_b += "\n            </details>\n            </fieldset>\n\n            <fieldset style='border: 1px solid gray; padding: 0.25em'>\n            <legend>AutoSend</legend>\n            <label for=tpp_assist_auto_send_checkbox\n                style='margin: inherit; color: inherit; display: inline-block;'\n            >\n                <input type=checkbox id=tpp_assist_auto_send_checkbox>\n                Automatically Send on click\n            </label>\n            <label for=tpp_assist_avoid_ban_checkbox\n                style='margin: inherit; color: inherit; display: inline-block;'\n            >\n                <input type=checkbox id=tpp_assist_avoid_ban_checkbox checked=checked>\n                Don't autosend if clicked too fast (helps avoid global ban)\n            </label>\n            </fieldset>\n            <fieldset style='border: 1px solid gray; padding: 0.25em'>\n            <legend>Troubleshoot</legend>\n                <button id=tpp_assist_reset_positions_button style='border:1px solid grey;color:#eee;background:#333'>Reset draggable box positions</button>\n            </fieldset>\n        ";
 		this.settingsPanel.innerHTML = panelHTMLBuf_b;
 		window.document.body.appendChild(this.settingsPanel);
 		let element = window.document.getElementById("tpp_assist_auto_send_checkbox");
@@ -565,6 +565,7 @@ class tppinputassist_App {
 		resetButton.onclick = function(event) {
 			_gthis.touchScreenOverlay.style.left = "100px";
 			_gthis.touchScreenOverlay.style.top = "100px";
+			_gthis.quickOverlayToggleElement.style.left = "";
 			_gthis.quickOverlayToggleElement.style.right = "0em";
 			_gthis.quickOverlayToggleElement.style.top = "0em";
 			_gthis.drawingToolbarContainer.style.left = "";
