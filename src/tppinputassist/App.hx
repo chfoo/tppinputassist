@@ -347,7 +347,7 @@ class App {
             </fieldset>
             <fieldset style='border: 1px solid gray; padding: 0.25em'>
             <legend>Troubleshoot</legend>
-                <button id=tpp_assist_reset_positions_button>Reset draggable box positions</button>
+                <button id=tpp_assist_reset_positions_button style='border:1px solid grey;color:#eee;background:#333'>Reset draggable box positions</button>
             </fieldset>
         ");
 
@@ -375,6 +375,7 @@ class App {
         resetButton.onclick = (event) -> {
             touchScreenOverlay.style.left = "100px";
             touchScreenOverlay.style.top = "100px";
+            quickOverlayToggleElement.style.left = "";
             quickOverlayToggleElement.style.right = "0em";
             quickOverlayToggleElement.style.top = "0em";
             drawingToolbarContainer.style.left = "";
