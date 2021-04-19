@@ -54,6 +54,7 @@ class App {
     var curveTypeElement:SelectElement;
     var quickOverlayToggleElement:DivElement;
     var quickOverlayToggleButton:ButtonElement;
+    var drawingToolbarContainer:DivElement;
     var touchscreenWidth = 320;
     var touchscreenHeight = 240;
     var touchscreenFormat = "{x},{y}";
@@ -344,6 +345,10 @@ class App {
                 Don't autosend if clicked too fast (helps avoid global ban)
             </label>
             </fieldset>
+            <fieldset style='border: 1px solid gray; padding: 0.25em'>
+            <legend>Troubleshoot</legend>
+                <button id=tpp_assist_reset_positions_button>Reset draggable box positions</button>
+            </fieldset>
         ");
 
         settingsPanel.innerHTML = panelHTMLBuf.toString();
@@ -365,6 +370,17 @@ class App {
 
         throwIfNull(element);
         sendButton = cast(element, ButtonElement);
+
+        var resetButton = cast(Browser.document.getElementById("tpp_assist_reset_positions_button"), ButtonElement);
+        resetButton.onclick = (event) -> {
+            touchScreenOverlay.style.left = "100px";
+            touchScreenOverlay.style.top = "100px";
+            quickOverlayToggleElement.style.right = "0em";
+            quickOverlayToggleElement.style.top = "0em";
+            drawingToolbarContainer.style.left = "";
+            drawingToolbarContainer.style.right = "-6em";
+            drawingToolbarContainer.style.top = "0px";
+        };
     }
 
     function setUpTouchscreenElements() {
@@ -501,17 +517,44 @@ class App {
         dragHandle.style.opacity = "0.5";
         dragHandle.style.color = "white";
 
-        touchScreenOverlay.appendChild(drawingTool.toolbarElement);
-        drawingTool.toolbarElement.style.display = "none";
-        drawingTool.toolbarElement.style.position = "absolute";
-        drawingTool.toolbarElement.style.right = "-6em";
-        drawingTool.toolbarElement.style.top = "0px";
-        drawingTool.toolbarElement.style.width = "6em";
-        drawingTool.toolbarElement.style.opacity = "0.9";
+        drawingToolbarContainer = Browser.document.createDivElement();
+        touchScreenOverlay.appendChild(drawingToolbarContainer);
+        drawingToolbarContainer.style.display = "none";
+        drawingToolbarContainer.style.position = "absolute";
+        drawingToolbarContainer.style.right = "-6em";
+        drawingToolbarContainer.style.top = "0px";
+        drawingToolbarContainer.style.width = "6em";
+        drawingToolbarContainer.style.opacity = "0.9";
 
-        drawingTool.toolbarElement.appendChild(Browser.document.createBRElement());
-        drawingTool.toolbarElement.appendChild(Browser.document.createBRElement());
-        drawingTool.toolbarElement.appendChild(drawingTool.actionBarElement);
+        var drawingToolDragHandle = Browser.document.createDivElement();
+        drawingToolbarContainer.appendChild(drawingToolDragHandle);
+        drawingToolDragHandle.style.border = "0.1em outset grey";
+        drawingToolDragHandle.style.position = "relative";
+        drawingToolDragHandle.style.left = "0em";
+        drawingToolDragHandle.style.background = "grey";
+        drawingToolDragHandle.style.height = "0.75em";
+        drawingToolDragHandle.style.width = "4em";
+        drawingToolDragHandle.style.cursor = "move";
+        drawingToolDragHandle.style.opacity = "0.5";
+        drawingToolDragHandle.style.color = "white";
+
+        drawingToolbarContainer.appendChild(drawingTool.toolbarElement);
+        drawingToolbarContainer.appendChild(Browser.document.createBRElement());
+        drawingToolbarContainer.appendChild(Browser.document.createBRElement());
+        drawingToolbarContainer.appendChild(drawingTool.actionBarElement);
+
+        function resetDrawingToolbarContainerTimer() {
+            if (drawingToolbarButtonTimerId != 0) {
+                Browser.window.clearTimeout(drawingToolbarButtonTimerId);
+                drawingToolbarButtonTimerId = 0;
+            }
+
+            drawingToolbarContainer.style.display = "block";
+
+            drawingToolbarButtonTimerId = Browser.window.setTimeout((event) -> {
+                drawingToolbarContainer.style.display = "none";
+            }, 10000);
+        }
 
         Browser.document.body.appendChild(touchScreenOverlay);
 
@@ -534,16 +577,7 @@ class App {
             var coord = calcCoordinate(event);
             clickState.setMouseMoveCoordinates(coord.x, coord.y);
 
-            if (drawingToolbarButtonTimerId != 0) {
-                Browser.window.clearTimeout(drawingToolbarButtonTimerId);
-                drawingToolbarButtonTimerId = 0;
-            }
-
-            drawingTool.toolbarElement.style.display = "block";
-
-            drawingToolbarButtonTimerId = Browser.window.setTimeout((event) -> {
-                drawingTool.toolbarElement.style.display = "none";
-            }, 10000);
+            resetDrawingToolbarContainerTimer();
         });
 
         jqClickReceiver.mouseleave(function (event:js.jquery.Event) {
@@ -564,6 +598,17 @@ class App {
                 stop: function (event: Event, ui: Dynamic) {
                     saveSettings();
             }
+        });
+
+        var jq = new JQuery(drawingToolbarContainer);
+        untyped jq.draggable({
+            handle: drawingToolDragHandle,
+            containment: "document",
+            stop: function () { saveSettings(); },
+            drag:
+                (event, ui) -> {
+                    resetDrawingToolbarContainerTimer();
+                }
         });
     }
 
@@ -848,6 +893,11 @@ class App {
         if (doc.exists("curveType")) {
             curveTypeElement.value = curveType = doc.get("curveType");
         }
+
+        if (doc.exists("drawingToolbarContainerX")) {
+            drawingToolbarContainer.style.left = doc.get("drawingToolbarContainerX");
+            drawingToolbarContainer.style.top = doc.get("drawingToolbarContainerY");
+        }
     }
 
     function saveSettings() {
@@ -868,7 +918,9 @@ class App {
             showQuickOverlayToggleX: quickOverlayToggleElement.style.left,
             showQuickOverlayToggleY: quickOverlayToggleElement.style.top,
             autoSend: autoSendCheckbox.checked,
-            avoidBan: avoidBanCheckbox.checked
+            avoidBan: avoidBanCheckbox.checked,
+            drawingToolbarContainerX: drawingToolbarContainer.style.left,
+            drawingToolbarContainerY: drawingToolbarContainer.style.top,
         };
 
         for (index in 0...gamepadButtonIds.length) {
