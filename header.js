@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TPP Touchscreen Input Assist
 // @namespace    chfoo/tppinputassist
-// @version      1.11.2
+// @version      1.12.0
 // @homepage     https://github.com/chfoo/tppinputassist
 // @description  Touchscreen coordinate tap overlay for inputting into Twitch chat
 // @author       Christopher Foo
