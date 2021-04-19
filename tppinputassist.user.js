@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TPP Touchscreen Input Assist
 // @namespace    chfoo/tppinputassist
-// @version      1.12.0
+// @version      1.13.0
 // @homepage     https://github.com/chfoo/tppinputassist
 // @description  Touchscreen coordinate tap overlay for inputting into Twitch chat
 // @author       Christopher Foo
@@ -463,7 +463,7 @@ class tppinputassist_App {
 		this.drawingTool = new tppinputassist_DrawingTool();
 	}
 	run() {
-		haxe_Log.trace("TPPInputAssist script run",{ fileName : "src/tppinputassist/App.hx", lineNumber : 165, className : "tppinputassist.App", methodName : "run", customParams : [window.location]});
+		haxe_Log.trace("TPPInputAssist script run",{ fileName : "src/tppinputassist/App.hx", lineNumber : 166, className : "tppinputassist.App", methodName : "run", customParams : [window.location]});
 		this.attachLoadHook();
 	}
 	detectButtonContainer() {
@@ -477,16 +477,16 @@ class tppinputassist_App {
 				return;
 			}
 			_gthis.running = true;
-			haxe_Log.trace("Page loaded, trying install script",{ fileName : "src/tppinputassist/App.hx", lineNumber : 183, className : "tppinputassist.App", methodName : "attachLoadHook"});
+			haxe_Log.trace("Page loaded, trying install script",{ fileName : "src/tppinputassist/App.hx", lineNumber : 184, className : "tppinputassist.App", methodName : "attachLoadHook"});
 			window.setTimeout($bind(_gthis,_gthis.jamJQueryIn),2000);
 		});
 	}
 	jamJQueryIn() {
 		if(!this.detectButtonContainer()) {
-			haxe_Log.trace("Button container not found, exiting.",{ fileName : "src/tppinputassist/App.hx", lineNumber : 191, className : "tppinputassist.App", methodName : "jamJQueryIn"});
+			haxe_Log.trace("Button container not found, exiting.",{ fileName : "src/tppinputassist/App.hx", lineNumber : 192, className : "tppinputassist.App", methodName : "jamJQueryIn"});
 			return;
 		}
-		haxe_Log.trace("Installing settings button",{ fileName : "src/tppinputassist/App.hx", lineNumber : 195, className : "tppinputassist.App", methodName : "jamJQueryIn"});
+		haxe_Log.trace("Installing settings button",{ fileName : "src/tppinputassist/App.hx", lineNumber : 196, className : "tppinputassist.App", methodName : "jamJQueryIn"});
 		this.installSettingsButton();
 		let style = window.document.createElement("style");
 		style.textContent = tppinputassist_CSS.getCSS();
@@ -546,7 +546,7 @@ class tppinputassist_App {
 			let defaultValue = tppinputassist_App.gamepadButtonDefaults[index];
 			panelHTMLBuf_b += Std.string("<br>\n                <label>" + label + ":\n                <input id=tpp_assist_gamepad_" + id + "_format type=text value=\"" + defaultValue + "\" style=\"width: 5em;\">\n                </label>");
 		}
-		panelHTMLBuf_b += "\n            </details>\n            </fieldset>\n\n            <fieldset style='border: 1px solid gray; padding: 0.25em'>\n            <legend>AutoSend</legend>\n            <label for=tpp_assist_auto_send_checkbox\n                style='margin: inherit; color: inherit; display: inline-block;'\n            >\n                <input type=checkbox id=tpp_assist_auto_send_checkbox>\n                Automatically Send on click\n            </label>\n            <label for=tpp_assist_avoid_ban_checkbox\n                style='margin: inherit; color: inherit; display: inline-block;'\n            >\n                <input type=checkbox id=tpp_assist_avoid_ban_checkbox checked=checked>\n                Don't autosend if clicked too fast (helps avoid global ban)\n            </label>\n            </fieldset>\n        ";
+		panelHTMLBuf_b += "\n            </details>\n            </fieldset>\n\n            <fieldset style='border: 1px solid gray; padding: 0.25em'>\n            <legend>AutoSend</legend>\n            <label for=tpp_assist_auto_send_checkbox\n                style='margin: inherit; color: inherit; display: inline-block;'\n            >\n                <input type=checkbox id=tpp_assist_auto_send_checkbox>\n                Automatically Send on click\n            </label>\n            <label for=tpp_assist_avoid_ban_checkbox\n                style='margin: inherit; color: inherit; display: inline-block;'\n            >\n                <input type=checkbox id=tpp_assist_avoid_ban_checkbox checked=checked>\n                Don't autosend if clicked too fast (helps avoid global ban)\n            </label>\n            </fieldset>\n            <fieldset style='border: 1px solid gray; padding: 0.25em'>\n            <legend>Troubleshoot</legend>\n                <button id=tpp_assist_reset_positions_button>Reset draggable box positions</button>\n            </fieldset>\n        ";
 		this.settingsPanel.innerHTML = panelHTMLBuf_b;
 		window.document.body.appendChild(this.settingsPanel);
 		let element = window.document.getElementById("tpp_assist_auto_send_checkbox");
@@ -561,6 +561,16 @@ class tppinputassist_App {
 		element = window.document.querySelector("div.chat-input__buttons-container > div > div > button[data-a-target='chat-send-button']");
 		this.throwIfNull(element);
 		this.sendButton = js_Boot.__cast(element , HTMLButtonElement);
+		let resetButton = js_Boot.__cast(window.document.getElementById("tpp_assist_reset_positions_button") , HTMLButtonElement);
+		resetButton.onclick = function(event) {
+			_gthis.touchScreenOverlay.style.left = "100px";
+			_gthis.touchScreenOverlay.style.top = "100px";
+			_gthis.quickOverlayToggleElement.style.right = "0em";
+			_gthis.quickOverlayToggleElement.style.top = "0em";
+			_gthis.drawingToolbarContainer.style.left = "";
+			_gthis.drawingToolbarContainer.style.right = "-6em";
+			return _gthis.drawingToolbarContainer.style.top = "0px";
+		};
 	}
 	setUpTouchscreenElements() {
 		this.enableCheckbox = js_Boot.__cast(window.document.getElementById("tpp_assist_enable_checkbox") , HTMLInputElement);
@@ -688,16 +698,39 @@ class tppinputassist_App {
 		dragHandle.style.cursor = "move";
 		dragHandle.style.opacity = "0.5";
 		dragHandle.style.color = "white";
-		this.touchScreenOverlay.appendChild(this.drawingTool.toolbarElement);
-		this.drawingTool.toolbarElement.style.display = "none";
-		this.drawingTool.toolbarElement.style.position = "absolute";
-		this.drawingTool.toolbarElement.style.right = "-6em";
-		this.drawingTool.toolbarElement.style.top = "0px";
-		this.drawingTool.toolbarElement.style.width = "6em";
-		this.drawingTool.toolbarElement.style.opacity = "0.9";
-		this.drawingTool.toolbarElement.appendChild(window.document.createElement("br"));
-		this.drawingTool.toolbarElement.appendChild(window.document.createElement("br"));
-		this.drawingTool.toolbarElement.appendChild(this.drawingTool.actionBarElement);
+		this.drawingToolbarContainer = window.document.createElement("div");
+		this.touchScreenOverlay.appendChild(this.drawingToolbarContainer);
+		this.drawingToolbarContainer.style.display = "none";
+		this.drawingToolbarContainer.style.position = "absolute";
+		this.drawingToolbarContainer.style.right = "-6em";
+		this.drawingToolbarContainer.style.top = "0px";
+		this.drawingToolbarContainer.style.width = "6em";
+		this.drawingToolbarContainer.style.opacity = "0.9";
+		let drawingToolDragHandle = window.document.createElement("div");
+		this.drawingToolbarContainer.appendChild(drawingToolDragHandle);
+		drawingToolDragHandle.style.border = "0.1em outset grey";
+		drawingToolDragHandle.style.position = "relative";
+		drawingToolDragHandle.style.left = "0em";
+		drawingToolDragHandle.style.background = "grey";
+		drawingToolDragHandle.style.height = "0.75em";
+		drawingToolDragHandle.style.width = "4em";
+		drawingToolDragHandle.style.cursor = "move";
+		drawingToolDragHandle.style.opacity = "0.5";
+		drawingToolDragHandle.style.color = "white";
+		this.drawingToolbarContainer.appendChild(this.drawingTool.toolbarElement);
+		this.drawingToolbarContainer.appendChild(window.document.createElement("br"));
+		this.drawingToolbarContainer.appendChild(window.document.createElement("br"));
+		this.drawingToolbarContainer.appendChild(this.drawingTool.actionBarElement);
+		let resetDrawingToolbarContainerTimer = function() {
+			if(_gthis.drawingToolbarButtonTimerId != 0) {
+				window.clearTimeout(_gthis.drawingToolbarButtonTimerId);
+				_gthis.drawingToolbarButtonTimerId = 0;
+			}
+			_gthis.drawingToolbarContainer.style.display = "block";
+			_gthis.drawingToolbarButtonTimerId = window.setTimeout(function(event) {
+				return _gthis.drawingToolbarContainer.style.display = "none";
+			},10000);
+		};
 		window.document.body.appendChild(this.touchScreenOverlay);
 		let jqClickReceiver = $(this.clickReceiver);
 		jqClickReceiver.mousedown(function(event) {
@@ -714,14 +747,7 @@ class tppinputassist_App {
 		jqClickReceiver.mousemove(function(event) {
 			let coord = _gthis.calcCoordinate(event);
 			_gthis.clickState.setMouseMoveCoordinates(coord.x,coord.y);
-			if(_gthis.drawingToolbarButtonTimerId != 0) {
-				window.clearTimeout(_gthis.drawingToolbarButtonTimerId);
-				_gthis.drawingToolbarButtonTimerId = 0;
-			}
-			_gthis.drawingTool.toolbarElement.style.display = "block";
-			_gthis.drawingToolbarButtonTimerId = window.setTimeout(function(event) {
-				return _gthis.drawingTool.toolbarElement.style.display = "none";
-			},10000);
+			resetDrawingToolbarContainerTimer();
 		});
 		jqClickReceiver.mouseleave(function(event) {
 			_gthis.clickState.setMouseLeave();
@@ -733,6 +759,12 @@ class tppinputassist_App {
 			return ui.position.top = Math.max(10,ui.position.top);
 		}}).resizable({ stop : function(event,ui) {
 			_gthis.saveSettings();
+		}});
+		let jq1 = $(this.drawingToolbarContainer);
+		jq1.draggable({ handle : drawingToolDragHandle, containment : "document", stop : function() {
+			_gthis.saveSettings();
+		}, drag : function(event,ui) {
+			resetDrawingToolbarContainerTimer();
 		}});
 	}
 	installQuickToggleOverlay() {
@@ -985,9 +1017,13 @@ class tppinputassist_App {
 		if(Object.prototype.hasOwnProperty.call(doc,"curveType")) {
 			this.curveTypeElement.value = this.curveType = doc["curveType"];
 		}
+		if(Object.prototype.hasOwnProperty.call(doc,"drawingToolbarContainerX")) {
+			this.drawingToolbarContainer.style.left = doc["drawingToolbarContainerX"];
+			this.drawingToolbarContainer.style.top = doc["drawingToolbarContainerY"];
+		}
 	}
 	saveSettings() {
-		let doc = { width : this.widthInput.value, height : this.heightInput.value, format : this.formatElement.value, dragFormat : this.dragFormatElement.value, pointFormat : this.pointFormatElement.value, linePointJoin : this.linePointJoinElement.value, curvePointJoin : this.curvePointJoinElement.value, curveType : this.curveTypeElement.value, overlayWidth : this.touchScreenOverlay.style.width, overlayHeight : this.touchScreenOverlay.style.height, overlayX : this.touchScreenOverlay.style.left, overlayY : this.touchScreenOverlay.style.top, showQuickOverlayToggle : this.quickOverlayToggleCheckbox.checked, showQuickOverlayToggleX : this.quickOverlayToggleElement.style.left, showQuickOverlayToggleY : this.quickOverlayToggleElement.style.top, autoSend : this.autoSendCheckbox.checked, avoidBan : this.avoidBanCheckbox.checked};
+		let doc = { width : this.widthInput.value, height : this.heightInput.value, format : this.formatElement.value, dragFormat : this.dragFormatElement.value, pointFormat : this.pointFormatElement.value, linePointJoin : this.linePointJoinElement.value, curvePointJoin : this.curvePointJoinElement.value, curveType : this.curveTypeElement.value, overlayWidth : this.touchScreenOverlay.style.width, overlayHeight : this.touchScreenOverlay.style.height, overlayX : this.touchScreenOverlay.style.left, overlayY : this.touchScreenOverlay.style.top, showQuickOverlayToggle : this.quickOverlayToggleCheckbox.checked, showQuickOverlayToggleX : this.quickOverlayToggleElement.style.left, showQuickOverlayToggleY : this.quickOverlayToggleElement.style.top, autoSend : this.autoSendCheckbox.checked, avoidBan : this.avoidBanCheckbox.checked, drawingToolbarContainerX : this.drawingToolbarContainer.style.left, drawingToolbarContainerY : this.drawingToolbarContainer.style.top};
 		let _g = 0;
 		let _g1 = tppinputassist_App.gamepadButtonIds.length;
 		while(_g < _g1) {
