@@ -2,3 +2,4 @@
 -main tppinputassist.Main
 -lib jQueryExtern
 -js script_build.js
+-D js-es=6

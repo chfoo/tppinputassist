@@ -1,5 +1,6 @@
 package tppinputassist;
 
+import js.html.SelectElement;
 import js.html.CanvasElement;
 import haxe.DynamicAccess;
 import haxe.Json;
@@ -26,8 +27,12 @@ class ElementNotFoundError {
 }
 
 
+enum ClickMode {
+    Touch;
+    Draw;
+}
+
 class App {
-    final dragThreshold = 8;
     var running = false;
     var textarea:TextAreaElement;
     var touchScreenOverlay:DivElement;
@@ -43,18 +48,28 @@ class App {
     var heightInput:InputElement;
     var formatElement:InputElement;
     var dragFormatElement:InputElement;
+    var pointFormatElement:InputElement;
+    var linePointJoinElement:InputElement;
+    var curvePointJoinElement:InputElement;
+    var curveTypeElement:SelectElement;
     var quickOverlayToggleElement:DivElement;
     var quickOverlayToggleButton:ButtonElement;
     var touchscreenWidth = 320;
     var touchscreenHeight = 240;
     var touchscreenFormat = "{x},{y}";
     var touchscreenDragFormat = "{x1},{y1}>{x2},{y2}";
+    var pointFormat = "{x},{y}";
+    var linePointJoin = ">";
+    var curvePointJoin = "~";
+    var curveType:String = "BezierVariableDegree";
     var lastSendTime:Date;
     var lastSendText = "";
-    var mouseDownX:Null<Float>;
-    var mouseDownY:Null<Float>;
+    var clickMode:ClickMode = ClickMode.Touch;
+    var clickState:ClickState;
+    var drawingToolbarButtonTimerId:Int = 0;
     final gamepadButtonFormatInputs:Array<InputElement>;
     final gamepadHandler:GamepadHandler;
+    final drawingTool:DrawingTool;
 
     static final gamepadButtonIds = [
         "button1",
@@ -140,8 +155,10 @@ class App {
 
     public function new() {
         lastSendTime = Date.now();
+        clickState = new ClickState();
         gamepadButtonFormatInputs = [];
         gamepadHandler = new GamepadHandler();
+        drawingTool = new DrawingTool();
     }
 
     public function run() {
@@ -219,6 +236,7 @@ class App {
         installTouchscreenOverlay();
         installQuickToggleOverlay();
 
+        setUpClickStateReactor();
         setUpTouchscreenElements();
         setUpQuickOverlayToggleElements();
         setUpGamepadElements();
@@ -252,6 +270,14 @@ class App {
             </label>
 
             <br>
+            <label for=tpp_assist_quick_overlay_toggle_checkbox
+                style='margin: inherit; color: inherit; display: inline-block;'
+            >
+                <input type=checkbox id=tpp_assist_quick_overlay_toggle_checkbox>
+                Show quick overlay toggle button
+            </label>
+
+            <br>
             <label>Width: <input id=tpp_assist_width_input type=number min=0 value=320 style='width: 5em;'></label>
             <br>
             <label>Height: <input id=tpp_assist_height_input type=number min=0 value=240 style='width: 5em;'></label>
@@ -260,12 +286,21 @@ class App {
             <br>
             <label>Drag: <input id=tpp_assist_drag_format_input type=text value='{x1},{y1}>{x2},{y2}' style='width: 10em;'></label>
             <br>
-            <label for=tpp_assist_quick_overlay_toggle_checkbox
-                style='margin: inherit; color: inherit; display: inline-block;'
-            >
-                <input type=checkbox id=tpp_assist_quick_overlay_toggle_checkbox>
-                Show quick overlay toggle button
-            </label>
+            <br>
+            <details>
+                <summary>Drawing mode</summary>
+                <label>Point format: <input id=tpp_assist_point_format type=text value='{x},{y}' style='width: 5em;'></label>
+                <br>
+                <label>Line point separator: <input id=tpp_assist_line_join_format type=text value='>' style='width: 5em;'></label>
+                <br>
+                <label>Curve point separator: <input id=tpp_assist_curve_join_format type=text value='~' style='width: 5em;'></label>
+                <br>
+                <label>Curve type:
+                    <select id=tpp_assist_curve_type>
+                        <option value=BezierVariableDegree>Bézier curve of variable degree</option>
+                    </select>
+                </label>
+            </details>
             </fieldset>");
 
         panelHTMLBuf.add("
@@ -369,6 +404,30 @@ class App {
             touchscreenDragFormat = dragFormatElement.value;
             saveSettings();
         }
+
+        pointFormatElement = cast(Browser.document.getElementById("tpp_assist_point_format"), InputElement);
+        pointFormatElement.onchange = function(event:Event) {
+            pointFormat = pointFormatElement.value;
+            saveSettings();
+        }
+
+        linePointJoinElement = cast(Browser.document.getElementById("tpp_assist_line_join_format"), InputElement);
+        linePointJoinElement.onchange = function(event:Event) {
+            linePointJoin = linePointJoinElement.value;
+            saveSettings();
+        }
+
+        curvePointJoinElement = cast(Browser.document.getElementById("tpp_assist_curve_join_format"), InputElement);
+        curvePointJoinElement.onchange = function(event:Event) {
+            curvePointJoin = curvePointJoinElement.value;
+            saveSettings();
+        }
+
+        curveTypeElement = cast(Browser.document.getElementById("tpp_assist_curve_type"), SelectElement);
+        curveTypeElement.onchange = function(event:Event) {
+            curveType = curveTypeElement.value;
+            saveSettings();
+        }
     }
 
     function setUpQuickOverlayToggleElements() {
@@ -427,7 +486,8 @@ class App {
         clickReceiver.style.imageRendering = "pixelated";
         clickReceiver.width = touchscreenWidth;
         clickReceiver.height = touchscreenHeight;
-        final canvasContext = clickReceiver.getContext2d();
+
+        drawingTool.setElements(touchScreenOverlay, clickReceiver);
 
         var dragHandle = Browser.document.createDivElement();
         touchScreenOverlay.appendChild(dragHandle);
@@ -441,76 +501,53 @@ class App {
         dragHandle.style.opacity = "0.5";
         dragHandle.style.color = "white";
 
+        touchScreenOverlay.appendChild(drawingTool.toolbarElement);
+        drawingTool.toolbarElement.style.display = "none";
+        drawingTool.toolbarElement.style.position = "absolute";
+        drawingTool.toolbarElement.style.right = "-6em";
+        drawingTool.toolbarElement.style.top = "0px";
+        drawingTool.toolbarElement.style.width = "6em";
+        drawingTool.toolbarElement.style.opacity = "0.9";
+
+        drawingTool.toolbarElement.appendChild(Browser.document.createBRElement());
+        drawingTool.toolbarElement.appendChild(Browser.document.createBRElement());
+        drawingTool.toolbarElement.appendChild(drawingTool.actionBarElement);
+
         Browser.document.body.appendChild(touchScreenOverlay);
 
-        function clearCanvas() {
-            canvasContext.clearRect(0, 0, touchscreenWidth, touchscreenHeight);
-        }
-        final strokePattern = makeStrokeDragPattern();
         final jqClickReceiver = new JQuery(clickReceiver);
 
         jqClickReceiver.mousedown((event:js.jquery.Event) -> {
             final coord = calcCoordinate(event);
-            mouseDownX = coord.x;
-            mouseDownY = coord.y;
+            clickState.setMouseDownCoordinates(coord.x, coord.y);
+            if (clickMode == ClickMode.Draw) {
+                drawingTool.addDrawHandle(coord.x, coord.y);
+            }
         });
 
         jqClickReceiver.mouseup((event:js.jquery.Event) -> {
-            if (mouseDownX == null || mouseDownY == null) {
-                return;
-            }
-
             final coord = calcCoordinate(event);
-            final distance = Math.sqrt(Math.pow(coord.x - mouseDownX, 2) + Math.pow(coord.y - mouseDownY, 2));
-
-            if (distance >= dragThreshold) {
-                final text = touchscreenDragFormat
-                    .replace("{x1}", Std.string(mouseDownX))
-                    .replace("{y1}", Std.string(mouseDownY))
-                    .replace("{x2}", Std.string(coord.x))
-                    .replace("{y2}", Std.string(coord.y));
-
-                coordDisplay.textContent = '${mouseDownX},${mouseDownY}→${coord.x},${coord.y} *';
-                sendText(text);
-            } else {
-                final text = touchscreenFormat
-                    .replace("{x}", Std.string(coord.x))
-                    .replace("{y}", Std.string(coord.y));
-
-                coordDisplay.textContent = '${coord.x},${coord.y} *';
-                sendText(text);
-            }
-
-            cancelDragStart();
-            clearCanvas();
+            clickState.setMouseUpCoordinates(coord.x, coord.y);
         });
 
         jqClickReceiver.mousemove(function (event:js.jquery.Event) {
             var coord = calcCoordinate(event);
-            coordDisplay.textContent = '${coord.x},${coord.y}';
+            clickState.setMouseMoveCoordinates(coord.x, coord.y);
 
-            canvasContext.clearRect(0, 0, touchscreenWidth, touchscreenHeight);
-
-            if (mouseDownX != null && mouseDownY != null) {
-                final distance = Math.sqrt(Math.pow(coord.x - mouseDownX, 2) + Math.pow(coord.y - mouseDownY, 2));
-
-                if (distance >= dragThreshold) {
-                    coordDisplay.textContent = '$mouseDownX,$mouseDownY→' + coordDisplay.textContent;
-                }
-
-                canvasContext.imageSmoothingEnabled = false;
-                canvasContext.strokeStyle = strokePattern;
-                canvasContext.beginPath();
-                canvasContext.moveTo(mouseDownX + 0.5, mouseDownY + 0.5);
-                canvasContext.lineTo(coord.x + 0.5, coord.y + 0.5);
-                canvasContext.stroke();
+            if (drawingToolbarButtonTimerId != 0) {
+                Browser.window.clearTimeout(drawingToolbarButtonTimerId);
+                drawingToolbarButtonTimerId = 0;
             }
+
+            drawingTool.toolbarElement.style.display = "block";
+
+            drawingToolbarButtonTimerId = Browser.window.setTimeout((event) -> {
+                drawingTool.toolbarElement.style.display = "none";
+            }, 10000);
         });
 
         jqClickReceiver.mouseleave(function (event:js.jquery.Event) {
-            coordDisplay.textContent = "";
-            cancelDragStart();
-            clearCanvas();
+            clickState.setMouseLeave();
         });
 
         var jq = new JQuery(touchScreenOverlay);
@@ -566,7 +603,105 @@ class App {
         Browser.document.body.appendChild(quickOverlayToggleElement);
     }
 
+    function setUpClickStateReactor() {
+        drawingTool.toolbarButtonSelected = () -> {
+            if (drawingTool.selectedTool == DrawingTool.DrawingButton.Touch) {
+                clickMode = Touch;
+                clickReceiver.style.cursor = "crosshair";
+                drawingTool.actionBarElement.style.display = "none";
+            } else {
+                clickMode = Draw;
+                clickReceiver.style.cursor = "default";
+                drawingTool.actionBarElement.style.display = "block";
+            }
+        }
+        drawingTool.actionBarElement.style.display = "none";
+
+        drawingTool.actionButtonSelected = (button) -> {
+            switch button {
+                case Clear:
+                    drawingTool.clearDrawingHandlesAndCanvas();
+                case Send:
+                    var text = makeDrawingToolCommand();
+                    sendText(text);
+            }
+        }
+
+        drawingTool.changed = () -> {
+            var text = makeDrawingToolCommand();
+            prefillText(text);
+        }
+
+        clickState.eventCallback = (event) -> {
+            switch clickMode {
+                case Touch:
+                    clickStateEventHandler(event);
+                case Draw:
+                    switch event {
+                        case Hover(x, y):
+                            coordDisplay.textContent = '${x},${y}';
+                        default:
+                            //pass
+                    }
+            }
+        };
+    }
+
+    function clickStateEventHandler(event:ClickState.ClickEvent) {
+        switch event {
+            case Hover(x, y):
+                coordDisplay.textContent = '${x},${y}';
+                drawingTool.clearCanvas();
+            case PointCommit(x, y):
+                final text = touchscreenFormat
+                    .replace("{x}", Std.string(x))
+                    .replace("{y}", Std.string(y));
+
+                coordDisplay.textContent = '${x},${y} *';
+                sendText(text);
+                drawingTool.clearCanvas();
+            case HoverDrag(x1, y1, x2, y2):
+                coordDisplay.textContent = '${x1},${y1}→${x2},${y2}';
+                drawingTool.clearCanvas();
+                drawingTool.drawLine(x1, y1, x2, y2);
+            case DragCommit(x1, y1, x2, y2):
+                final text = touchscreenDragFormat
+                    .replace("{x1}", Std.string(x1))
+                    .replace("{y1}", Std.string(y1))
+                    .replace("{x2}", Std.string(x2))
+                    .replace("{y2}", Std.string(y2));
+
+                coordDisplay.textContent = '${x1},${y1}→${x2},${y2} *';
+                sendText(text);
+                drawingTool.clearCanvas();
+            case Canceled:
+                drawingTool.clearCanvas();
+        }
+    }
+
+    function makeDrawingToolCommand():String {
+        switch drawingTool.selectedTool {
+            case Touch:
+                throw "invalid state";
+            case Line:
+                return drawingTool.pointsToString(true, pointFormat, linePointJoin);
+            case Curve:
+                return drawingTool.pointsToString(false, pointFormat, curvePointJoin);
+            case Freehand:
+                // TODO
+                throw "todo";
+        }
+    }
+
+    function prefillText(text:String) {
+        sendTextReal(text, false);
+    }
+
     function sendText(text:String) {
+        sendTextReal(text, true);
+    }
+
+    function sendTextReal(text:String, allowAutoSend:Bool) {
         // Bypass same message in 30 seconds filter
         if (text == lastSendText) {
             text = text.substr(0, 1).toUpperCase() + text.substr(1);
@@ -578,7 +713,7 @@ class App {
         var changeEvent = new Event("input", { bubbles: true, cancelable: true });
         textarea.dispatchEvent(changeEvent);
 
-        if (autoSendCheckbox.checked) {
+        if (autoSendCheckbox.checked && allowAutoSend) {
             var dateNow = Date.now();
 
             if (dateNow.getTime() - lastSendTime.getTime() < 1.5 * 1000 && avoidBanCheckbox.checked) {
@@ -605,11 +740,6 @@ class App {
         var y = Std.int((event.pageY - offset.top) / divHeight * touchscreenHeight);
 
         return {x: x, y: y};
-    }
-
-    function cancelDragStart() {
-        mouseDownX = null;
-        mouseDownY = null;
     }
 
     function showTouchscreenOverlay(visible:Bool) {
@@ -708,6 +838,16 @@ class App {
                 gamepadButtonFormatInputs[index].value = doc.get('gamepad-$id-format');
             }
         }
+
+        if (doc.exists("pointFormat")) {
+            pointFormatElement.value = pointFormat = doc.get("pointFormat");
+            linePointJoinElement.value = linePointJoin = doc.get("linePointJoin");
+            curvePointJoinElement.value = curvePointJoin = doc.get("curvePointJoin");
+        }
+
+        if (doc.exists("curveType")) {
+            curveTypeElement.value = curveType = doc.get("curveType");
+        }
     }
 
     function saveSettings() {
@@ -716,6 +856,10 @@ class App {
             height: heightInput.value,
             format: formatElement.value,
             dragFormat: dragFormatElement.value,
+            pointFormat: pointFormatElement.value,
+            linePointJoin: linePointJoinElement.value,
+            curvePointJoin: curvePointJoinElement.value,
+            curveType: curveTypeElement.value,
             overlayWidth: touchScreenOverlay.style.width,
             overlayHeight: touchScreenOverlay.style.height,
             overlayX: touchScreenOverlay.style.left,
@@ -737,22 +881,5 @@ class App {
             'tppinputassist-${Browser.window.location.pathname}-settings',
             Json.stringify(doc)
         );
-    }
-
-    function makeStrokeDragPattern() {
-        final canvas = Browser.document.createCanvasElement();
-        final context = canvas.getContext2d();
-        canvas.width = 2;
-        canvas.height = 2;
-        context.imageSmoothingEnabled = false;
-        context.fillStyle = "rgba(255, 255, 255, 0.8)";
-        context.fillRect(0, 0, 1, 1);
-        context.fillRect(1, 1, 1, 1);
-        context.fillStyle = "rgba(0, 0, 0, 0.8)";
-        context.fillRect(1, 0, 1, 1);
-        context.fillRect(0, 1, 1, 1);
-
-        final pattern = context.createPattern(canvas, "repeat");
-        return pattern;
     }
 }

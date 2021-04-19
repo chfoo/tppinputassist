@@ -12,13 +12,27 @@ You will either need [Greasemonkey](https://addons.mozilla.org/firefox/addon/gre
 
 Once enabled in Greasemoney/Tampermonkey, reload the video page. Wait at least 10 seconds. The Twitch chat will show "TPPInputAssist" under the text box. Click it to show the settings panel.
 
+### Box overlay
+
 When you enable the touchscreen feature, a box will appear on the video. Drag the box over the touchscreen portion of the video using the top handlebar. Then use the bottom handlebar to resize it. When you click within the box, the coordinates will appear in the chat text box.
+
+### How to drag something
 
 When you hold down the mouse button and move the mouse within the touchscreen box (dragging), it will input the dragging coordinate commands (for example, "10,10>20,20"). Any drags that have a threshold distance of 8 or more touchscreen pixels will be considered drag commands. What this means is that if you are clicking and accidentally move the mouse slightly, it will still be considered a click.
 
+### Touchscreen sizes
+
 The DS uses a 256×192 pixel touchscreen, the 3DS uses 320×240 touchscreen, and the Switch uses a 1280x720 touchscreen. Be sure to adjust the size setting if needed.
 
+### Quickly toggling the box overlay
+
 When you enable "Show quick overlay toggle button", it will add a floating button labeled "📺👆" to the top-right of the web page. You can click on the the button to enable and disable the tap overlay without needing to open the settings panel. You can drag the handle box to move the button.
+
+### Using Drawing Mode
+
+The buttons on the right of the overlay is a toolbar for changing touch/drawing mode. "👆T" means touch mode which is the regular interface. Selecting "✒️📏L" (Line) or "✒️➰C" (Curve) will switch it into Drawing Mode. While in Drawing Mode, it works like a vector drawing program (and it does not send anything automatically). Click in the area to insert a node/handle, then click somewhere else to insert another node/handle. As you insert mode node/handles, a line is built up. You can edit the lines by dragging the node/handle. Once you are satisfied, you can press Send in the chatbox.
+
+### Troubleshooting issues
 
 The overlay might not work correctly on all views or pages using the new Twitch layout. Particularly, fullscreen may hide the overlay and whispers boxes may be covered.
 
