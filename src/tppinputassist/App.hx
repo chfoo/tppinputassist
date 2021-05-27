@@ -204,7 +204,7 @@ class App {
     function installSettingsButton() {
         var buttonContainer:Element = null;
 
-        buttonContainer = Browser.document.querySelector(".chat-input__buttons-container > div.tw-flex-row");
+        buttonContainer = Browser.document.querySelector(".chat-input__buttons-container > div:nth-child(2)");
 
         throwIfNull(buttonContainer);
 
@@ -221,8 +221,9 @@ class App {
             untyped jq.dialog("widget").css("z-index", "3002");
             return false;
         }
+        enableElement.style.fontSize = "80%";
 
-        buttonContainer.appendChild(enableElement);
+        buttonContainer.insertBefore(enableElement, buttonContainer.firstElementChild);
     }
 
     function install() {
