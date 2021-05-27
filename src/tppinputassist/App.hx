@@ -209,7 +209,7 @@ class App {
         throwIfNull(buttonContainer);
 
         var enableElement = Browser.document.createAnchorElement();
-        enableElement.textContent = "TPPInputAssist";
+        enableElement.textContent = "TPP Input Assist";
         enableElement.href = "#";
         enableElement.onclick = function (event:Dynamic) {
             if (settingsPanel == null) {
