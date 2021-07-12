@@ -183,7 +183,7 @@ class App {
             running = true;
             trace("Page loaded, trying install script");
 
-            Browser.window.setTimeout(jamJQueryIn, 2000);
+            Browser.window.setTimeout(jamJQueryIn, 5000);
         });
     }
 
@@ -208,6 +208,7 @@ class App {
 
         throwIfNull(buttonContainer);
 
+        var containerElement = Browser.document.createDivElement();
         var enableElement = Browser.document.createAnchorElement();
         enableElement.textContent = "TPP Input Assist";
         enableElement.href = "#";
@@ -223,7 +224,8 @@ class App {
         }
         enableElement.style.fontSize = "80%";
 
-        buttonContainer.insertBefore(enableElement, buttonContainer.firstElementChild);
+        containerElement.appendChild(enableElement);
+        buttonContainer.insertBefore(containerElement, buttonContainer.firstElementChild);
     }
 
     function install() {
