@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TPP Touchscreen Input Assist
 // @namespace    chfoo/tppinputassist
-// @version      1.13.4
+// @version      1.13.5
 // @homepage     https://github.com/chfoo/tppinputassist
 // @description  Touchscreen coordinate tap overlay for inputting into Twitch chat
 // @author       Christopher Foo
@@ -560,7 +560,7 @@ class tppinputassist_App {
 		element = window.document.getElementById("tpp_assist_avoid_ban_checkbox");
 		this.throwIfNull(element);
 		this.avoidBanCheckbox = js_Boot.__cast(element , HTMLInputElement);
-		element = window.document.querySelector("div.chat-input__buttons-container > div > div > button[data-a-target='chat-send-button']");
+		element = window.document.querySelector("div.chat-input__buttons-container button[data-a-target='chat-send-button']");
 		this.throwIfNull(element);
 		this.sendButton = js_Boot.__cast(element , HTMLButtonElement);
 		let resetButton = js_Boot.__cast(window.document.getElementById("tpp_assist_reset_positions_button") , HTMLButtonElement);
