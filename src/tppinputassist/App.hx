@@ -1,15 +1,15 @@
 package tppinputassist;
 
-import js.html.SelectElement;
-import js.html.CanvasElement;
 import haxe.DynamicAccess;
 import haxe.Json;
 import js.Browser;
 import js.html.ButtonElement;
+import js.html.CanvasElement;
 import js.html.DivElement;
 import js.html.Element;
 import js.html.Event;
 import js.html.InputElement;
+import js.html.SelectElement;
 import js.html.TextAreaElement;
 import js.jquery.JQuery;
 
@@ -68,6 +68,7 @@ class App {
     var clickMode:ClickMode = ClickMode.Touch;
     var clickState:ClickState;
     var drawingToolbarButtonTimerId:Int = 0;
+    var errorReportCount:Int = 0;
     final gamepadButtonFormatInputs:Array<InputElement>;
     final gamepadHandler:GamepadHandler;
     final drawingTool:DrawingTool;
@@ -202,11 +203,9 @@ class App {
     }
 
     function installSettingsButton() {
-        var buttonContainer:Element = null;
+        var buttonContainer:Element;
 
-        buttonContainer = Browser.document.querySelector(".chat-input__buttons-container > div:nth-child(2)");
-
-        throwIfNull(buttonContainer);
+        buttonContainer = querySelector(".chat-input__buttons-container > div:nth-child(2)");
 
         var containerElement = Browser.document.createDivElement();
         var enableElement = Browser.document.createAnchorElement();
@@ -214,7 +213,12 @@ class App {
         enableElement.href = "#";
         enableElement.onclick = function (event:Dynamic) {
             if (settingsPanel == null) {
-                install();
+                try {
+                    install();
+                } catch (error:Any) {
+                    reportError('JS error:\n\n$error');
+                    throw error;
+                }
             }
 
             var jq = new JQuery(settingsPanel);
@@ -231,9 +235,7 @@ class App {
     function install() {
         var element:Element;
 
-        element = Browser.document.querySelector(".chat-input textarea[data-a-target='chat-input']");
-
-        throwIfNull(element);
+        element = querySelector(".chat-input textarea[data-a-target='chat-input']");
         textarea = cast(element, TextAreaElement);
 
         installSettingsPanel();
@@ -250,10 +252,39 @@ class App {
         gamepadHandler.onInput = gamepadInputCallback;
     }
 
-    function throwIfNull(element:Element) {
+    function querySelector(query:String):Element {
+        var element = Browser.document.querySelector(query);
+
         if (element == null) {
+            reportError('querySelector failed: $query');
             throw new ElementNotFoundError();
         }
+
+        return element;
+    }
+
+    function getElementById(id:String):Element {
+        var element = Browser.document.getElementById(id);
+
+        if (element == null) {
+            reportError('getElementById failed: $id');
+            throw new ElementNotFoundError();
+        }
+
+        return element;
+    }
+
+    function reportError(message:String) {
+        Browser.console.error('tppinputassist: $message');
+
+        if (errorReportCount == 0) {
+            var window = Browser.window.open("", "tppinputassist-error", "");
+            var element = Browser.document.createPreElement();
+            element.textContent = 'TPP Input Assist error:\n\n$message';
+            window.document.body.appendChild(element);
+        }
+
+        errorReportCount += 1;
     }
 
     function installSettingsPanel() {
@@ -358,23 +389,20 @@ class App {
 
         Browser.document.body.appendChild(settingsPanel);
 
-        var element = Browser.document.getElementById("tpp_assist_auto_send_checkbox");
-        throwIfNull(element);
+        var element = getElementById("tpp_assist_auto_send_checkbox");
         autoSendCheckbox = cast(element, InputElement);
         autoSendCheckbox.onchange = (event:Event) -> {
             saveSettings();
         }
 
-        element = Browser.document.getElementById("tpp_assist_avoid_ban_checkbox");
-        throwIfNull(element);
+        element = getElementById("tpp_assist_avoid_ban_checkbox");
         avoidBanCheckbox = cast(element, InputElement);
 
-        element = Browser.document.querySelector("div.chat-input__buttons-container button[data-a-target='chat-send-button']");
+        element = querySelector("div.chat-input__buttons-container button[data-a-target='chat-send-button']");
 
-        throwIfNull(element);
         sendButton = cast(element, ButtonElement);
 
-        var resetButton = cast(Browser.document.getElementById("tpp_assist_reset_positions_button"), ButtonElement);
+        var resetButton = cast(getElementById("tpp_assist_reset_positions_button"), ButtonElement);
         resetButton.onclick = (event) -> {
             touchScreenOverlay.style.left = "100px";
             touchScreenOverlay.style.top = "100px";
@@ -388,13 +416,13 @@ class App {
     }
 
     function setUpTouchscreenElements() {
-        enableCheckbox = cast(Browser.document.getElementById("tpp_assist_enable_checkbox"), InputElement);
+        enableCheckbox = cast(getElementById("tpp_assist_enable_checkbox"), InputElement);
         enableCheckbox.onclick = function (event:Event) {
             showTouchscreenOverlay(enableCheckbox.checked);
             loadSettings();
         }
 
-        quickOverlayToggleCheckbox = cast(Browser.document.getElementById("tpp_assist_quick_overlay_toggle_checkbox"), InputElement);
+        quickOverlayToggleCheckbox = cast(getElementById("tpp_assist_quick_overlay_toggle_checkbox"), InputElement);
         quickOverlayToggleCheckbox.onclick = function (event:Event) {
             if (quickOverlayToggleCheckbox.checked) {
                 quickOverlayToggleElement.style.display = "inline-block";
@@ -404,8 +432,8 @@ class App {
             saveSettings();
         }
 
-        widthInput = cast(Browser.document.getElementById("tpp_assist_width_input"), InputElement);
-        heightInput = cast(Browser.document.getElementById("tpp_assist_height_input"), InputElement);
+        widthInput = cast(getElementById("tpp_assist_width_input"), InputElement);
+        heightInput = cast(getElementById("tpp_assist_height_input"), InputElement);
 
         widthInput.onchange = heightInput.onchange = function(event:Event) {
             clickReceiver.width = touchscreenWidth = Std.parseInt(widthInput.value);
@@ -413,37 +441,37 @@ class App {
             saveSettings();
         }
 
-        formatElement = cast(Browser.document.getElementById("tpp_assist_format_input"), InputElement);
+        formatElement = cast(getElementById("tpp_assist_format_input"), InputElement);
         formatElement.onchange = function(event:Event) {
             touchscreenFormat = formatElement.value;
             saveSettings();
         }
 
-        dragFormatElement = cast(Browser.document.getElementById("tpp_assist_drag_format_input"), InputElement);
+        dragFormatElement = cast(getElementById("tpp_assist_drag_format_input"), InputElement);
         dragFormatElement.onchange = function(event:Event) {
             touchscreenDragFormat = dragFormatElement.value;
             saveSettings();
         }
 
-        pointFormatElement = cast(Browser.document.getElementById("tpp_assist_point_format"), InputElement);
+        pointFormatElement = cast(getElementById("tpp_assist_point_format"), InputElement);
         pointFormatElement.onchange = function(event:Event) {
             pointFormat = pointFormatElement.value;
             saveSettings();
         }
 
-        linePointJoinElement = cast(Browser.document.getElementById("tpp_assist_line_join_format"), InputElement);
+        linePointJoinElement = cast(getElementById("tpp_assist_line_join_format"), InputElement);
         linePointJoinElement.onchange = function(event:Event) {
             linePointJoin = linePointJoinElement.value;
             saveSettings();
         }
 
-        curvePointJoinElement = cast(Browser.document.getElementById("tpp_assist_curve_join_format"), InputElement);
+        curvePointJoinElement = cast(getElementById("tpp_assist_curve_join_format"), InputElement);
         curvePointJoinElement.onchange = function(event:Event) {
             curvePointJoin = curvePointJoinElement.value;
             saveSettings();
         }
 
-        curveTypeElement = cast(Browser.document.getElementById("tpp_assist_curve_type"), SelectElement);
+        curveTypeElement = cast(getElementById("tpp_assist_curve_type"), SelectElement);
         curveTypeElement.onchange = function(event:Event) {
             curveType = curveTypeElement.value;
             saveSettings();
@@ -455,7 +483,7 @@ class App {
     }
 
     function setUpGamepadElements() {
-        var gamepadEnableCheckbox = cast(Browser.document.getElementById("tpp_assist_gamepad_enable_checkbox"), InputElement);
+        var gamepadEnableCheckbox = cast(getElementById("tpp_assist_gamepad_enable_checkbox"), InputElement);
         gamepadEnableCheckbox.onclick = function (event:Event) {
             if (gamepadEnableCheckbox.checked) {
                 gamepadHandler.enable();
@@ -465,7 +493,7 @@ class App {
         }
 
         for (id in gamepadButtonIds) {
-            final element = cast(Browser.document.getElementById('tpp_assist_gamepad_${id}_format'), InputElement);
+            final element = cast(getElementById('tpp_assist_gamepad_${id}_format'), InputElement);
             gamepadButtonFormatInputs.push(element);
             element.onchange = (event:Event) -> {
                 saveSettings();
