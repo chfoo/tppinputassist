@@ -1,5 +1,6 @@
 package tppinputassist;
 
+import js.html.InputEvent;
 import haxe.DynamicAccess;
 import haxe.Json;
 import js.Browser;
@@ -34,7 +35,7 @@ enum ClickMode {
 
 class App {
     var running = false;
-    var textarea:TextAreaElement;
+    var textarea:DivElement;
     var touchScreenOverlay:DivElement;
     var clickReceiver:CanvasElement;
     var settingsPanel:DivElement;
@@ -235,8 +236,8 @@ class App {
     function install() {
         var element:Element;
 
-        element = querySelector(".chat-input textarea[data-a-target='chat-input']");
-        textarea = cast(element, TextAreaElement);
+        element = querySelector("div[data-a-target='chat-input']");
+        textarea = cast(element, DivElement);
 
         installSettingsPanel();
         installTouchscreenOverlay();
@@ -784,11 +785,22 @@ class App {
             text = text.substr(0, 1).toUpperCase() + text.substr(1);
         }
 
-        // Trigger React
+        // Trigger Slate
         // https://github.com/facebook/react/issues/10135
-        untyped Object.getOwnPropertyDescriptor(Object.getPrototypeOf(textarea), "value").set.call(textarea, text);
-        var changeEvent = new Event("input", { bubbles: true, cancelable: true });
+        // https://stackoverflow.com/a/61360140/1524507
+        // https://w3c.github.io/uievents/#dom-inputevent-inputevent
+        // https://www.w3.org/TR/input-events-1/#interface-InputEvent
+        // https://w3c.github.io/selection-api/
+        var deleteEvent1 = new InputEvent("beforeinput", untyped { inputType: "deleteHardLineBackward", data: "" });
+        var deleteEvent2 = new InputEvent("beforeinput", untyped { inputType: "deleteHardLineForward", data: "" });
+        var changeEvent = new InputEvent("beforeinput", untyped { inputType: "insertText", data: text });
+        textarea.focus();
+        textarea.dispatchEvent(deleteEvent1);
+        textarea.dispatchEvent(deleteEvent2);
         textarea.dispatchEvent(changeEvent);
+        Browser.window.setTimeout(function () {
+            textarea.blur();
+        }, 50);
 
         if (autoSendCheckbox.checked && allowAutoSend) {
             var dateNow = Date.now();
@@ -801,11 +813,10 @@ class App {
             lastSendTime = dateNow;
             lastSendText = text;
 
-            new JQuery(sendButton).focus();
-            new JQuery(textarea).focus();
-
-            var clickEvent = new Event("click", { bubbles: true, cancelable: true });
-            sendButton.dispatchEvent(clickEvent);
+            Browser.window.setTimeout(function () {
+                textarea.focus();
+                sendButton.click();
+            }, 100);
         }
     }
 
