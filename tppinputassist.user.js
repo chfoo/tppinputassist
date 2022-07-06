@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TPP Touchscreen Input Assist
 // @namespace    chfoo/tppinputassist
-// @version      1.14
+// @version      1.14.1
 // @homepage     https://github.com/chfoo/tppinputassist
 // @description  Touchscreen coordinate tap overlay for inputting into Twitch chat
 // @author       Christopher Foo
@@ -478,7 +478,7 @@ class tppinputassist_App {
 		this.drawingTool = new tppinputassist_DrawingTool();
 	}
 	run() {
-		haxe_Log.trace("TPPInputAssist script run",{ fileName : "src/tppinputassist/App.hx", lineNumber : 167, className : "tppinputassist.App", methodName : "run", customParams : [window.location]});
+		haxe_Log.trace("TPPInputAssist script run",{ fileName : "src/tppinputassist/App.hx", lineNumber : 168, className : "tppinputassist.App", methodName : "run", customParams : [window.location]});
 		this.attachLoadHook();
 	}
 	detectButtonContainer() {
@@ -492,16 +492,16 @@ class tppinputassist_App {
 				return;
 			}
 			_gthis.running = true;
-			haxe_Log.trace("Page loaded, trying install script",{ fileName : "src/tppinputassist/App.hx", lineNumber : 185, className : "tppinputassist.App", methodName : "attachLoadHook"});
+			haxe_Log.trace("Page loaded, trying install script",{ fileName : "src/tppinputassist/App.hx", lineNumber : 186, className : "tppinputassist.App", methodName : "attachLoadHook"});
 			window.setTimeout($bind(_gthis,_gthis.jamJQueryIn),5000);
 		});
 	}
 	jamJQueryIn() {
 		if(!this.detectButtonContainer()) {
-			haxe_Log.trace("Button container not found, exiting.",{ fileName : "src/tppinputassist/App.hx", lineNumber : 193, className : "tppinputassist.App", methodName : "jamJQueryIn"});
+			haxe_Log.trace("Button container not found, exiting.",{ fileName : "src/tppinputassist/App.hx", lineNumber : 194, className : "tppinputassist.App", methodName : "jamJQueryIn"});
 			return;
 		}
-		haxe_Log.trace("Installing settings button",{ fileName : "src/tppinputassist/App.hx", lineNumber : 197, className : "tppinputassist.App", methodName : "jamJQueryIn"});
+		haxe_Log.trace("Installing settings button",{ fileName : "src/tppinputassist/App.hx", lineNumber : 198, className : "tppinputassist.App", methodName : "jamJQueryIn"});
 		this.installSettingsButton();
 		let style = window.document.createElement("style");
 		style.textContent = tppinputassist_CSS.getCSS();
@@ -534,8 +534,8 @@ class tppinputassist_App {
 		buttonContainer.insertBefore(containerElement,buttonContainer.firstElementChild);
 	}
 	install() {
-		let element = this.querySelector(".chat-input textarea[data-a-target='chat-input']");
-		this.textarea = js_Boot.__cast(element , HTMLTextAreaElement);
+		let element = this.querySelector("div[data-a-target='chat-input']");
+		this.textarea = js_Boot.__cast(element , HTMLDivElement);
 		this.installSettingsPanel();
 		this.installTouchscreenOverlay();
 		this.installQuickToggleOverlay();
@@ -943,9 +943,17 @@ class tppinputassist_App {
 		if(text == this.lastSendText) {
 			text = HxOverrides.substr(text,0,1).toUpperCase() + HxOverrides.substr(text,1,null);
 		}
-		Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this.textarea),"value").set.call(this.textarea,text);
-		let changeEvent = new Event("input",{ bubbles : true, cancelable : true});
+		let deleteEvent1 = new InputEvent("beforeinput",{ inputType : "deleteHardLineBackward", data : ""});
+		let deleteEvent2 = new InputEvent("beforeinput",{ inputType : "deleteHardLineForward", data : ""});
+		let changeEvent = new InputEvent("beforeinput",{ inputType : "insertText", data : text});
+		this.textarea.focus();
+		this.textarea.dispatchEvent(deleteEvent1);
+		this.textarea.dispatchEvent(deleteEvent2);
 		this.textarea.dispatchEvent(changeEvent);
+		let _gthis = this;
+		window.setTimeout(function() {
+			_gthis.textarea.blur();
+		},50);
 		if(this.autoSendCheckbox.checked && allowAutoSend) {
 			let dateNow = new Date();
 			if(dateNow.getTime() - this.lastSendTime.getTime() < 1500. && this.avoidBanCheckbox.checked) {
@@ -954,10 +962,10 @@ class tppinputassist_App {
 			}
 			this.lastSendTime = dateNow;
 			this.lastSendText = text;
-			$(this.sendButton).focus();
-			$(this.textarea).focus();
-			let clickEvent = new Event("click",{ bubbles : true, cancelable : true});
-			this.sendButton.dispatchEvent(clickEvent);
+			window.setTimeout(function() {
+				_gthis.textarea.focus();
+				_gthis.sendButton.click();
+			},100);
 		}
 	}
 	calcCoordinate(event) {
