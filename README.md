@@ -38,6 +38,12 @@ The overlay might not work correctly on all views or pages using the new Twitch 
 
 If you notice any visual or functional anomalies affecting extensions (such as BTTV or FFZ), please file a bug report and temporary disable/enable extensions as needed.
 
+#### Manifest V3
+
+In recent Chrome (and other Chrome-based browsers), extensions cannot run user scripts without you manually enabling Developer Mode.
+
+* [Tampermonkey FAQ](https://www.tampermonkey.net/faq.php#Q209)
+
 ### Gamepad
 
 This script includes gamepad support using HTML5 Gamepad API just for fun.
