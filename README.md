@@ -90,7 +90,7 @@ If you press more than 3 and release at the same time, the script will ignore it
 
 (This instruction is for users who wish to compare the precompiled script with the source code. You don't need to compile it yourself just to use the script.)
 
-To compile the script on Linux, install Haxe 4.0. Then run the makefile with `make` and the JavaScript output will be in the same directory.
+To compile the script on Linux, install Haxe 4.3. Then run the makefile with `make` and the JavaScript output will be in the same directory.
 
 ## FAQ
 
