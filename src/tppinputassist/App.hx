@@ -1,6 +1,5 @@
 package tppinputassist;
 
-import js.html.InputEvent;
 import haxe.DynamicAccess;
 import haxe.Json;
 import js.Browser;
@@ -10,8 +9,10 @@ import js.html.DivElement;
 import js.html.Element;
 import js.html.Event;
 import js.html.InputElement;
+import js.html.InputEvent;
+import js.html.MutationObserver;
 import js.html.SelectElement;
-import js.html.TextAreaElement;
+import js.html.StyleElement;
 import js.jquery.JQuery;
 
 using StringTools;
@@ -35,7 +36,10 @@ enum ClickMode {
 
 class App {
     var running = false;
+    var installAttemptCount = 0;
     var textarea:DivElement;
+    var jqueryStyleElement: StyleElement;
+    var settingsButtonContainer:DivElement;
     var touchScreenOverlay:DivElement;
     var clickReceiver:CanvasElement;
     var settingsPanel:DivElement;
@@ -70,6 +74,7 @@ class App {
     var clickState:ClickState;
     var drawingToolbarButtonTimerId:Int = 0;
     var errorReportCount:Int = 0;
+    var elementConnectedTimerId:Int = 0;
     final gamepadButtonFormatInputs:Array<InputElement>;
     final gamepadHandler:GamepadHandler;
     final drawingTool:DrawingTool;
@@ -185,22 +190,34 @@ class App {
             running = true;
             trace("Page loaded, trying install script");
 
-            Browser.window.setTimeout(jamJQueryIn, 5000);
+            Browser.window.setTimeout(installInit, 2000);
         });
     }
 
-    function jamJQueryIn() {
-        if (!detectButtonContainer()) {
+    function installInit() {
+        if (!detectButtonContainer() && installAttemptCount < 10) {
+            trace("Button container not found, retrying.");
+            installAttemptCount += 1;
+            Browser.window.setTimeout(installInit, 5000);
+            return;
+        } else if (!detectButtonContainer()) {
             trace("Button container not found, exiting.");
             return;
         }
 
+        installAttemptCount = 0;
+
+        trace("Installing CSS");
+        installJQueryCSS();
+
         trace("Installing settings button");
         installSettingsButton();
+    }
 
-        var style = Browser.document.createStyleElement();
-        style.textContent = CSS.getCSS();
-        Browser.document.body.appendChild(style);
+    function installJQueryCSS() {
+        jqueryStyleElement = Browser.document.createStyleElement();
+        jqueryStyleElement.textContent = CSS.getCSS();
+        Browser.document.body.appendChild(jqueryStyleElement);
     }
 
     function installSettingsButton() {
@@ -208,14 +225,16 @@ class App {
 
         buttonContainer = querySelector(".chat-input__buttons-container > div:nth-child(2)");
 
-        var containerElement = Browser.document.createDivElement();
+        settingsButtonContainer = Browser.document.createDivElement();
+        settingsButtonContainer.id = "tppinputassistSettingsButtonContainer";
+
         var enableElement = Browser.document.createAnchorElement();
         enableElement.textContent = "TPP Input Assist";
         enableElement.href = "#";
         enableElement.onclick = function (event:Dynamic) {
             if (settingsPanel == null) {
                 try {
-                    install();
+                    installComponents();
                 } catch (error:Any) {
                     reportError('JS error:\n\n$error');
                     throw error;
@@ -229,11 +248,24 @@ class App {
         }
         enableElement.style.fontSize = "80%";
 
-        containerElement.appendChild(enableElement);
-        buttonContainer.insertBefore(containerElement, buttonContainer.firstElementChild);
+        settingsButtonContainer.appendChild(enableElement);
+        buttonContainer.insertBefore(settingsButtonContainer, buttonContainer.firstElementChild);
+
+        // Ideally, mutation observer should be used.
+        // But we can't observe removal of the element
+        // itself without observing the root and all children.
+        if (elementConnectedTimerId == 0) {
+            elementConnectedTimerId = Browser.window.setInterval(() -> {
+                if (!settingsButtonContainer.isConnected) {
+                    Browser.window.clearInterval(elementConnectedTimerId);
+                    elementConnectedTimerId = 0;
+                    reinstall();
+                }
+            }, 5000);
+        }
     }
 
-    function install() {
+    function installComponents() {
         var element:Element;
 
         element = querySelector("div[data-a-target='chat-input']");
@@ -251,6 +283,37 @@ class App {
         loadSettings();
 
         gamepadHandler.onInput = gamepadInputCallback;
+    }
+
+    function reinstall() {
+        trace("Reinstalling..");
+        uninstallAll();
+        Browser.window.setTimeout(installInit, 1000);
+    }
+
+    function uninstallAll() {
+        if (jqueryStyleElement != null) {
+            jqueryStyleElement.remove();
+            jqueryStyleElement = null;
+        }
+        if (settingsButtonContainer != null) {
+            settingsButtonContainer.remove();
+            settingsButtonContainer = null;
+        }
+        if (settingsPanel != null) {
+            var jq = new JQuery(settingsPanel);
+            untyped jq.dialog("destroy");
+            settingsPanel.remove();
+            settingsPanel = null;
+        }
+        if (touchScreenOverlay != null) {
+            touchScreenOverlay.remove();
+            touchScreenOverlay = null;
+        }
+        if (quickOverlayToggleElement != null) {
+            quickOverlayToggleElement.remove();
+            quickOverlayToggleElement = null;
+        }
     }
 
     function querySelector(query:String):Element {
