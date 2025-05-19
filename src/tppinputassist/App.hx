@@ -251,17 +251,29 @@ class App {
         settingsButtonContainer.appendChild(enableElement);
         buttonContainer.insertBefore(settingsButtonContainer, buttonContainer.firstElementChild);
 
-        // Ideally, mutation observer should be used.
-        // But we can't observe removal of the element
-        // itself without observing the root and all children.
+        runCheckSettingsButtonTimer();
+    }
+
+    function runCheckSettingsButtonTimer() {
         if (elementConnectedTimerId == 0) {
-            elementConnectedTimerId = Browser.window.setInterval(() -> {
-                if (!settingsButtonContainer.isConnected) {
-                    Browser.window.clearInterval(elementConnectedTimerId);
-                    elementConnectedTimerId = 0;
-                    reinstall();
-                }
+            elementConnectedTimerId = Browser.window.setTimeout(() -> {
+                Browser.window.requestAnimationFrame(checkSettingsButton);
             }, 5000);
+        }
+    }
+
+    // The chat panel reloads several times, rendering the panel as new,
+    // when the page is first opened. (I wouldn't be surprised that the bug is
+    // caused by someone's AI vibe coding.)
+    // Ideally, mutation observer should be used. But we can't observe removal
+    // of the element itself without observing the root and all children.
+    function checkSettingsButton(_time:Float) {
+        elementConnectedTimerId = 0;
+
+        if (!settingsButtonContainer.isConnected) {
+            reinstall();
+        } else {
+            runCheckSettingsButtonTimer();
         }
     }
 
