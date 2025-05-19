@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TPP Touchscreen Input Assist
 // @namespace    chfoo/tppinputassist
-// @version      1.15.0
+// @version      1.15.1
 // @homepage     https://github.com/chfoo/tppinputassist
 // @description  Touchscreen coordinate tap overlay for inputting into Twitch chat
 // @author       Christopher Foo
@@ -533,14 +533,22 @@ class tppinputassist_App {
 		enableElement.style.fontSize = "80%";
 		this.settingsButtonContainer.appendChild(enableElement);
 		buttonContainer.insertBefore(this.settingsButtonContainer,buttonContainer.firstElementChild);
+		this.runCheckSettingsButtonTimer();
+	}
+	runCheckSettingsButtonTimer() {
+		let _gthis = this;
 		if(this.elementConnectedTimerId == 0) {
-			this.elementConnectedTimerId = window.setInterval(function() {
-				if(!_gthis.settingsButtonContainer.isConnected) {
-					window.clearInterval(_gthis.elementConnectedTimerId);
-					_gthis.elementConnectedTimerId = 0;
-					_gthis.reinstall();
-				}
+			this.elementConnectedTimerId = window.setTimeout(function() {
+				return window.requestAnimationFrame($bind(_gthis,_gthis.checkSettingsButton));
 			},5000);
+		}
+	}
+	checkSettingsButton(_time) {
+		this.elementConnectedTimerId = 0;
+		if(!this.settingsButtonContainer.isConnected) {
+			this.reinstall();
+		} else {
+			this.runCheckSettingsButtonTimer();
 		}
 	}
 	installComponents() {
@@ -557,7 +565,7 @@ class tppinputassist_App {
 		this.gamepadHandler.onInput = $bind(this,this.gamepadInputCallback);
 	}
 	reinstall() {
-		haxe_Log.trace("Reinstalling..",{ fileName : "src/tppinputassist/App.hx", lineNumber : 289, className : "tppinputassist.App", methodName : "reinstall"});
+		haxe_Log.trace("Reinstalling..",{ fileName : "src/tppinputassist/App.hx", lineNumber : 301, className : "tppinputassist.App", methodName : "reinstall"});
 		this.uninstallAll();
 		window.setTimeout($bind(this,this.installInit),1000);
 	}
