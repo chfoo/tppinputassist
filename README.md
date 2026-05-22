@@ -40,9 +40,11 @@ If you notice any visual or functional anomalies affecting extensions (such as B
 
 #### Manifest V3
 
-In recent Chrome (and other Chrome-based browsers), extensions cannot run user scripts without you manually enabling Developer Mode.
+In recent Chrome (and other Chrome-based browsers), extensions cannot run user scripts without you manually enabling the *Allow User Scripts* option.
 
 * [Tampermonkey FAQ](https://www.tampermonkey.net/faq.php#Q209)
+* Previous instructions mentioned turning on Developer Mode. This is no longer required and can be turned off when Allow User Scripts is on. 
+* If user scripts isn't working, try turning off Allow User Scripts and turning it back on again.
 
 ### Gamepad
 
